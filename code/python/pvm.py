@@ -8,5 +8,10 @@ def get_balance(account) -> int:
     return accounts[account]
 
 
-def set_balance(account, balance) -> None:
-    accounts[account] = balance
+def transfer(_from, to, amount) -> None:
+    if accounts[_from] < amount:
+        raise ValueError("Insufficient funds")
+    
+    accounts[_from] -= amount
+    accounts[to] += amount
+
