@@ -15,3 +15,6 @@ def transfer(_from, to, amount) -> None:
     accounts[_from] -= amount
     accounts[to] += amount
 
+
+# listen for gRPC requests
+
