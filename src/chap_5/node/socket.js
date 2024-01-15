@@ -1,6 +1,5 @@
 const net = require("net");
-
-const port = 5000;
+const PORT = 5001;
 
 const server = net.createServer((socket) => {
   console.log("Client connected");
@@ -24,7 +23,7 @@ const server = net.createServer((socket) => {
         break;
     }
 
-    socket.write(result.toString());
+    socket.write("hi");
   });
 
   socket.on("end", () => {
@@ -40,6 +39,6 @@ server.on("error", (error) => {
   console.log(`Server Error: ${error.message}`);
 });
 
-server.listen(port, () => {
-  console.log(`TCP socket server is running on port: ${port}`);
+server.listen(PORT, () => {
+  console.log(`TCP socket server is running on port: ${PORT}`);
 });
