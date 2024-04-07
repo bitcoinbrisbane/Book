@@ -1,0 +1,44 @@
+version: "2.2"
+
+services:
+  postgres:
+    image: postgres:15.3-bookworm
+    container_name: postgres
+    command:
+      [
+        "postgres",
+        "-c",
+        "log_statement=all",
+        "-c",
+        "log_destination=stderr",
+        "-c",
+        "log_min_messages=notice",
+        "-c",
+        "client_min_messages=notice"
+      ]
+    environment:
+      POSTGRES_DB: book
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: Test1234
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7.2.4-bookworm
+    container_name: redis
+    command: redis-server --requirepass Test1234
+    ports:
+      - "6379:6379"
+
+  mongo:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_DATABASE: book
+      # No auth for now
+      # MONGO_INITDB_ROOT_USERNAME: root
+      # MONGO_INITDB_ROOT_PASSWORD: example
+    ports:
+      - 27017:27017
+
+
