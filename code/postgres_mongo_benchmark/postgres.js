@@ -10,6 +10,7 @@ const client = new Client({
 });
 
 client.connect();
+const ids = [];
 
 const create_account_table = async () => {
   const query = {
@@ -17,6 +18,7 @@ const create_account_table = async () => {
   };
 
   const result = await client.query(query).catch((error) => console.log(error));
+  console.log(result);
 };
 
 const add_random_account = async () => {
@@ -29,6 +31,7 @@ const add_random_account = async () => {
   };
 
   const result = await client.query(query);
+  ids.push(result.rows[0].id);
 };
 
 const add_1000_accounts = async () => {

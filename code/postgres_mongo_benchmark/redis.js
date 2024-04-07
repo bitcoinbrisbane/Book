@@ -1,7 +1,11 @@
 // add redis client
 
 const redis = require("redis");
-const client = redis.createClient({ url: "redis://localhost:6379", username: "default", password: "Test1234"});
+const client = redis.createClient({
+  url: "redis://localhost:6379",
+  username: "default",
+  password: "Test1234",
+});
 
 client.on("error", (error) => {
   console.log(error);
@@ -10,6 +14,8 @@ client.on("error", (error) => {
 client.on("connect", () => {
   console.log("Connected to Redis");
 });
+
+const ids = [];
 
 const add_random_account = async () => {
   const account = {
@@ -22,6 +28,8 @@ const add_random_account = async () => {
       console.log(error);
     }
   });
+
+  ids.push(account.address);
 };
 
 const add_1000_accounts = async () => {

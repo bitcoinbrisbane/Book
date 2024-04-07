@@ -24,6 +24,7 @@ const accountSchema = new mongoose.Schema({
 });
 
 const Account = mongoose.model("Account", accountSchema);
+const ids = [];
 
 const add_random_account = async () => {
   // console.time("add_1_account");
@@ -33,6 +34,7 @@ const add_random_account = async () => {
   });
 
   const result = await account.save();
+  ids.push(result._id);
   // console.timeEnd("add_1_account");
   // console.log(result._id);
 };
@@ -43,6 +45,9 @@ const add_1000_accounts = async () => {
     await add_random_account();
   }
   console.timeEnd("add_1000_accounts");
+
+  const random_index = Math.floor(Math.random() * 1000);
+  const random_id = ids[random_index];
 };
 
 console.log("Adding 1000 accounts");
