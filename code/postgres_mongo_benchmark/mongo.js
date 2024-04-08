@@ -48,6 +48,10 @@ const add_1000_accounts = async () => {
 
   const random_index = Math.floor(Math.random() * 1000);
   const random_id = ids[random_index];
+
+  console.time("select_1_account");
+  const result = await Account.findById(random_id);
+  console.timeEnd("select_1_account");
 };
 
 console.log("Adding 1000 accounts");

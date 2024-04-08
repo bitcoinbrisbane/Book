@@ -19,6 +19,17 @@ const create_account_table = async () => {
 
   const result = await client.query(query).catch((error) => console.log(error));
   console.log(result);
+
+  // Alter table and add index in address column
+  const alter_query = {
+    text: "CREATE INDEX IF NOT EXISTS address_index ON account(address)",
+  };
+
+  const alter_result = await client
+    .query(alter_query)
+    .catch((error) => console.log(error));
+
+  console.log(alter_result);
 };
 
 const add_random_account = async () => {
@@ -31,7 +42,8 @@ const add_random_account = async () => {
   };
 
   const result = await client.query(query);
-  ids.push(result.rows[0].id);
+  // console.log(result);
+  ids.push(address);
 };
 
 const add_1000_accounts = async () => {
@@ -41,6 +53,18 @@ const add_1000_accounts = async () => {
     await add_random_account();
   }
   console.timeEnd("add_1000_accounts");
+
+  const random_index = Math.floor(Math.random() * 1000);
+  const random_id = ids[random_index];
+
+  console.time("select_1_account");
+  const select_query = {
+    text: "SELECT * FROM account WHERE address = $1",
+    values: [random_id],
+  };
+
+  const select_result = await client.query(select_query);
+  console.timeEnd("select_1_account");
 };
 
 console.log("Adding 1000 accounts");
