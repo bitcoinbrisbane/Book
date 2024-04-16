@@ -1,3 +1,5 @@
+const crypto = require("crypto");
+
 const shuffleCards = (cards) => {
     let currentIndex = cards.length, temporaryValue, randomIndex;
 
@@ -16,6 +18,11 @@ const shuffleCards = (cards) => {
     return cards;
 }
 
+const concatenateCards = (cards) => {
+    // Using the join method with an empty string as the separator to concatenate all elements without any space.
+    return cards.join("");
+}
+
 // Example usage with a 52-card deck:
 const deck = [
     'AC', '2C', '3C', '4C', '5C', '6C', '7C', '8C', '9C', '10C', 'JC', 'QC', 'KC',
@@ -27,3 +34,13 @@ const deck = [
 // Shuffle the deck
 shuffleCards(deck);
 console.log(deck);
+
+// Concatenate the deck
+const concatenatedDeck = concatenateCards(deck);
+console.log(concatenatedDeck);
+
+// SHA-256 hash the concatenated deck
+const hash = crypto.createHash("sha256");
+hash.update(concatenatedDeck);
+const hashedDeck = hash.digest("hex");
+console.log(hashedDeck);
