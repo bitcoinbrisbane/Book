@@ -1,9 +1,36 @@
 {
-  "name": "src",
+  "name": "",
   "version": "1.0.0",
+  "description": "",
   "main": "index.js",
-  "license": "MIT",
+  "type": "module",
+  "license": "AGPL-version-3.0",
+  "private": false,
+  "engines": {
+    "node": ">= 14.0.0",
+    "npm": ">= 6.0.0"
+  },
+  "homepage": "",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "bugs": "",
+  "keywords": [],
+  "author": {
+    "name": "",
+    "email": "",
+    "url": ""
+  },
+  "contributors": [],
+  "scripts": {
+    "dev": "",
+    "test": ""
+  },
   "dependencies": {
+    "@chainsafe/libp2p-noise": "^15.1.0",
+    "@libp2p/mplex": "^10.1.3",
+    "@libp2p/tcp": "^9.1.3",
     "libp2p": "^1.8.2"
   }
 }
