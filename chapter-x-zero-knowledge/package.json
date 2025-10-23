@@ -1,0 +1,62 @@
+{
+  "name": "zk-poker-shuffle",
+  "version": "1.0.0",
+  "description": "Zero-Knowledge Proof system for provably fair poker deck shuffling",
+  "scripts": {
+    "compile:circuit": "npm run compile:circuit:basic && npm run compile:circuit:optimized",
+    "compile:circuit:basic": "circom circuits/deck_shuffle.circom --r1cs --wasm --sym -o public/circuits",
+    "compile:circuit:optimized": "circom circuits/optimized_deck_shuffle.circom --r1cs --wasm --sym -o public/circuits/optimized",
+    
+    "setup:ptau": "npm run setup:ptau:new && npm run setup:ptau:contribute && npm run setup:ptau:prepare",
+    "setup:ptau:new": "snarkjs powersoftau new bn128 14 build/pot14_0000.ptau -v",
+    "setup:ptau:contribute": "snarkjs powersoftau contribute build/pot14_0000.ptau build/pot14_0001.ptau --name='First contribution' -v -e='random entropy'",
+    "setup:ptau:prepare": "snarkjs powersoftau prepare phase2 build/pot14_0001.ptau build/pot14_final.ptau -v",
+    
+    "setup:zkey": "npm run setup:zkey:basic && npm run setup:zkey:optimized",
+    "setup:zkey:basic": "snarkjs groth16 setup public/circuits/deck_shuffle.r1cs build/pot14_final.ptau public/circuits/deck_shuffle_0000.zkey && snarkjs zkey contribute public/circuits/deck_shuffle_0000.zkey public/circuits/deck_shuffle.zkey --name='Circuit contribution' -v -e='more entropy'",
+    "setup:zkey:optimized": "snarkjs groth16 setup public/circuits/optimized/optimized_deck_shuffle.r1cs build/pot14_final.ptau public/circuits/optimized/deck_shuffle_0000.zkey && snarkjs zkey contribute public/circuits/optimized/deck_shuffle_0000.zkey public/circuits/optimized/deck_shuffle.zkey --name='Circuit contribution' -v",
+    
+    "export:vkey": "npm run export:vkey:basic && npm run export:vkey:optimized",
+    "export:vkey:basic": "snarkjs zkey export verificationkey public/circuits/deck_shuffle.zkey public/circuits/verification_key.json",
+    "export:vkey:optimized": "snarkjs zkey export verificationkey public/circuits/optimized/deck_shuffle.zkey public/circuits/optimized/verification_key.json",
+    
+    "export:solidity": "npm run export:solidity:basic && npm run export:solidity:optimized",
+    "export:solidity:basic": "snarkjs zkey export solidityverifier public/circuits/deck_shuffle.zkey contracts/DeckShuffleVerifier.sol",
+    "export:solidity:optimized": "snarkjs zkey export solidityverifier public/circuits/optimized/deck_shuffle.zkey contracts/OptimizedDeckShuffleVerifier.sol",
+    
+    "build:all": "npm run compile:circuit && npm run setup:ptau && npm run setup:zkey && npm run export:vkey && npm run export:solidity",
+    
+    "test:proof": "node scripts/test-proof.js",
+    "test:browser": "npm run dev",
+    
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    
+    "serve:demo": "http-server public -p 8080 --cors"
+  },
+  "dependencies": {
+    "snarkjs": "^0.7.0",
+    "circomlibjs": "^0.1.7",
+    "@bitcoinbrisbane/block52": "^1.0.0",
+    "ethers": "^6.9.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@vitejs/plugin-react": "^4.2.1",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.7",
+    "vite-plugin-node-polyfills": "^0.19.0",
+    "vite-plugin-wasm": "^3.3.0",
+    "http-server": "^14.1.1"
+  },
+  "keywords": [
+    "zero-knowledge",
+    "zk-snark",
+    "poker",
+    "circom",
+    "blockchain",
+    "provably-fair",
+    "fisher-yates"
+  ]
+}

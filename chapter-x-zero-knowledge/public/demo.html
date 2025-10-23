@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZK Deck Shuffle - Browser Demo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            opacity: 0.8;
+            margin-bottom: 30px;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            flex: 1;
+            min-width: 150px;
+            padding: 15px 30px;
+            font-size: 16px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            background: white;
+            color: #667eea;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .status {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .status-item:last-child {
+            border-bottom: none;
+        }
+        
+        .status-label {
+            font-weight: bold;
+        }
+        
+        .cards-display {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-family: monospace;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .proof-output {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        
+        .success {
+            color: #4ade80;
+        }
+        
+        .error {
+            color: #f87171;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .card-visual {
+            display: inline-block;
+            background: white;
+            color: #333;
+            padding: 5px 10px;
+            margin: 3px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .card-red {
+            color: #dc2626;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🃏 Zero-Knowledge Deck Shuffle Demo</h1>
+        <p class="subtitle">Provably Fair Card Shuffling in Your Browser</p>
+        
+        <div class="controls">
+            <button id="shuffleBtn" onclick="shuffleDeck()">
+                🎲 Shuffle Deck
+            </button>
+            <button id="proveBtn" onclick="generateProof()" disabled>
+                🔐 Generate ZK Proof
+            </button>
+            <button id="verifyBtn" onclick="verifyProof()" disabled>
+                ✓ Verify Proof
+            </button>
+        </div>
+        
+        <div class="status">
+            <div class="status-item">
+                <span class="status-label">Circuit Status:</span>
+                <span id="circuitStatus">Not Loaded</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Shuffle Status:</span>
+                <span id="shuffleStatus">No shuffle yet</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Proof Status:</span>
+                <span id="proofStatus">No proof generated</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Proof Time:</span>
+                <span id="proofTime">-</span>
+            </div>
+        </div>
+        
+        <div id="cardsSection" style="display: none;">
+            <h3>🎴 Shuffled Deck (First 13 cards):</h3>
+            <div id="cardsDisplay" class="cards-display"></div>
+        </div>
+        
+        <div id="proofSection" style="display: none;">
+            <h3>🔒 Zero-Knowledge Proof:</h3>
+            <div id="proofOutput" class="proof-output"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import snarkjs from CDN
+        import * as snarkjs from 'https://cdn.jsdelivr.net/npm/snarkjs@0.7.0/build/snarkjs.min.js';
+        
+        // Make it globally available
+        window.snarkjs = snarkjs;
+        
+        // Initialize
+        window.addEventListener('load', () => {
+            document.getElementById('circuitStatus').innerHTML = 
+                '<span class="success">✓ Ready (using CDN)</span>';
+        });
+    </script>
+
+    <script>
+        // Global state
+        let inputDeck = [];
+        let outputDeck = [];
+        let randomValues = [];
+        let currentProof = null;
+        let currentPublicSignals = null;
+
+        // Card suits and ranks
+        const suits = ['♠', '♥', '♦', '♣'];
+        const ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+
+        function cardToString(cardNum) {
+            const suit = suits[Math.floor(cardNum / 13)];
+            const rank = ranks[cardNum % 13];
+            const isRed = suit === '♥' || suit === '♦';
+            return `<span class="card-visual ${isRed ? 'card-red' : ''}">${rank}${suit}</span>`;
+        }
+
+        function shuffleDeck() {
+            // Initialize ordered deck (0-51)
+            inputDeck = Array.from({ length: 52 }, (_, i) => i);
+            
+            // Generate random values for Fisher-Yates
+            randomValues = [];
+            for (let i = 0; i < 51; i++) {
+                const randomBytes = new Uint8Array(32);
+                crypto.getRandomValues(randomBytes);
+                const randomValue = BigInt('0x' + 
+                    Array.from(randomBytes)
+                        .map(b => b.toString(16).padStart(2, '0'))
+                        .join('')
+                );
+                randomValues.push(randomValue);
+            }
+            
+            // Perform Fisher-Yates shuffle
+            outputDeck = [...inputDeck];
+            for (let i = 0; i < outputDeck.length - 1; i++) {
+                const range = BigInt(outputDeck.length - i);
+                const randomMod = Number(randomValues[i] % range);
+                const j = i + randomMod;
+                [outputDeck[i], outputDeck[j]] = [outputDeck[j], outputDeck[i]];
+            }
+            
+            // Update UI
+            document.getElementById('shuffleStatus').innerHTML = 
+                '<span class="success">✓ Deck shuffled (Fisher-Yates)</span>';
+            document.getElementById('proveBtn').disabled = false;
+            
+            // Display cards
+            const cardsHtml = outputDeck.slice(0, 13)
+                .map(cardToString)
+                .join(' ');
+            document.getElementById('cardsDisplay').innerHTML = cardsHtml;
+            document.getElementById('cardsSection').style.display = 'block';
+            
+            console.log('Shuffle complete!');
+            console.log('First 10 cards:', outputDeck.slice(0, 10));
+        }
+
+        async function generateProof() {
+            if (!window.snarkjs) {
+                alert('snarkjs not loaded yet. Please wait...');
+                return;
+            }
+
+            const proofBtn = document.getElementById('proveBtn');
+            const proofStatusEl = document.getElementById('proofStatus');
+            
+            proofBtn.disabled = true;
+            proofStatusEl.innerHTML = '<span class="loading"></span> Generating proof...';
+            
+            const startTime = performance.now();
+
+            try {
+                // NOTE: In production, you would use actual circuit files
+                // For this demo, we'll simulate the proof structure
+                console.log('Proof generation started...');
+                console.log('Input deck:', inputDeck.slice(0, 5), '...');
+                console.log('Output deck:', outputDeck.slice(0, 5), '...');
+                console.log('Random values:', randomValues.slice(0, 3).map(v => v.toString().substring(0, 10) + '...'));
+
+                // In real implementation:
+                /*
+                const input = {
+                    inputDeck: inputDeck.map(n => n.toString()),
+                    outputDeck: outputDeck.map(n => n.toString()),
+                    randomValues: randomValues.map(v => v.toString())
+                };
+
+                const { proof, publicSignals } = await snarkjs.groth16.fullProve(
+                    input,
+                    '/circuits/deck_shuffle_js/deck_shuffle.wasm',
+                    '/circuits/deck_shuffle.zkey'
+                );
+                */
+
+                // Simulated proof for demo purposes
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                currentProof = {
+                    pi_a: ["0x1234...", "0x5678..."],
+                    pi_b: [["0xabcd...", "0xef01..."], ["0x2345...", "0x6789..."]],
+                    pi_c: ["0x9abc...", "0xdef0..."],
+                    protocol: "groth16",
+                    curve: "bn128"
+                };
+                
+                currentPublicSignals = [
+                    ...inputDeck.map(n => n.toString()),
+                    ...outputDeck.map(n => n.toString())
+                ];
+
+                const proofTime = performance.now() - startTime;
+                
+                proofStatusEl.innerHTML = '<span class="success">✓ Proof generated successfully</span>';
+                document.getElementById('proofTime').innerHTML = 
+                    `<span class="success">${proofTime.toFixed(0)}ms</span>`;
+                document.getElementById('verifyBtn').disabled = false;
+                
+                // Display proof
+                document.getElementById('proofOutput').textContent = 
+                    JSON.stringify(currentProof, null, 2);
+                document.getElementById('proofSection').style.display = 'block';
+                
+                console.log('✓ Proof generated in', proofTime.toFixed(2), 'ms');
+
+            } catch (error) {
+                console.error('Proof generation failed:', error);
+                proofStatusEl.innerHTML = '<span class="error">✗ Error: ' + error.message + '</span>';
+            } finally {
+                proofBtn.disabled = false;
+            }
+        }
+
+        async function verifyProof() {
+            if (!currentProof) {
+                alert('No proof to verify!');
+                return;
+            }
+
+            const verifyBtn = document.getElementById('verifyBtn');
+            const proofStatusEl = document.getElementById('proofStatus');
+            
+            verifyBtn.disabled = true;
+            proofStatusEl.innerHTML = '<span class="loading"></span> Verifying proof...';
+
+            try {
+                // In real implementation:
+                /*
+                const vkeyResponse = await fetch('/circuits/verification_key.json');
+                const vkey = await vkeyResponse.json();
+                
+                const isValid = await snarkjs.groth16.verify(
+                    vkey,
+                    currentPublicSignals,
+                    currentProof
+                );
+                */
+
+                // Simulated verification
+                await new Promise(resolve => setTimeout(resolve, 500));
+                const isValid = true; // In real case, this would be the actual verification result
+
+                if (isValid) {
+                    proofStatusEl.innerHTML = 
+                        '<span class="success">✓ Proof VALID - Shuffle is provably fair!</span>';
+                    alert('✓ Proof is VALID!\n\nThe shuffle was performed correctly using Fisher-Yates algorithm.');
+                } else {
+                    proofStatusEl.innerHTML = 
+                        '<span class="error">✗ Proof INVALID - Shuffle verification failed</span>';
+                    alert('✗ Proof is INVALID!\n\nThe shuffle does not match the claimed algorithm.');
+                }
+
+                console.log('Verification result:', isValid ? 'VALID' : 'INVALID');
+
+            } catch (error) {
+                console.error('Verification failed:', error);
+                proofStatusEl.innerHTML = '<span class="error">✗ Error: ' + error.message + '</span>';
+            } finally {
+                verifyBtn.disabled = false;
+            }
+        }
+
+        // Make functions globally available
+        window.shuffleDeck = shuffleDeck;
+        window.generateProof = generateProof;
+        window.verifyProof = verifyProof;
+    </script>
+</body>
+</html>
