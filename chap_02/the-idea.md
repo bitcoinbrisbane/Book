@@ -1,1 +1,1 @@
-The idea is, to build a domain specific 
+The idea is, to build a domain specific blockchain
