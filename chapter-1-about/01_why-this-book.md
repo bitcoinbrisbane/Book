@@ -7,5 +7,3 @@ Building a distributed application is hard.  There are many parts of the applica
 In 2022 there are so many great languages to choose from, so which ones should we choose?  For my own personal projects I'm often torn between new and cool tech or tried and tested languages that I know backwards so I know the project might actually get done without the frustration of having to learn a new language.  That said, learning is fun and its a good way to stay current and explore new tech.
 
 In this book I’ll present the technologies that are popular and up and coming paired with some exciting new languages and frameworks that should get even the seasoned developer excited.
-
-\
