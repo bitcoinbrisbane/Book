@@ -22,6 +22,125 @@ hash(6ee0afb99a734986c820025ef6d12812c43c10357779f05613be26cd +
 = a19335e738444f879b26e3ca5f01f3a95524cb25676b91a64fd5a74a55a27cca
 ```
 
+### Python Implementation
+
+Here's how we can implement this in Python:
+
+```python
+import hashlib
+
+def sha256(data: str) -> str:
+    """Compute SHA-256 hash of a string and return hex digest."""
+    return hashlib.sha256(data.encode('utf-8')).hexdigest()
+
+def hash_pair(left: str, right: str) -> str:
+    """Hash two hex strings together."""
+    return sha256(left + right)
+
+# Our two cards
+L1 = "ACE OF SPADES"
+L2 = "KING OF SPADES"
+
+# Hash each leaf
+h1 = sha256(L1)
+h2 = sha256(L2)
+
+print(f"hash(L1) = {h1}")
+print(f"hash(L2) = {h2}")
+
+# Combine to get the Merkle root
+root = hash_pair(h1, h2)
+print(f"Merkle Root = {root}")
+```
+
+## Building a Full Merkle Tree
+
+For a complete deck of cards, we need to build a full tree structure:
+
+```python
+class MerkleTree:
+    """A simple Merkle Tree implementation."""
+
+    def __init__(self, leaves: list):
+        self.leaves = leaves
+        self.leaf_hashes = [sha256(leaf) for leaf in leaves]
+        self.tree = self._build_tree(self.leaf_hashes)
+        self.root = self.tree[-1][0] if self.tree else None
+
+    def _build_tree(self, leaf_hashes: list) -> list:
+        """Build the tree level by level from leaves to root."""
+        if not leaf_hashes:
+            return []
+
+        tree = [leaf_hashes]
+        current_level = leaf_hashes
+
+        while len(current_level) > 1:
+            next_level = []
+            for i in range(0, len(current_level), 2):
+                left = current_level[i]
+                # If odd number of nodes, duplicate the last one
+                right = current_level[i + 1] if i + 1 < len(current_level) else left
+                next_level.append(hash_pair(left, right))
+            tree.append(next_level)
+            current_level = next_level
+
+        return tree
+
+# Example with 4 cards
+cards = ["ACE OF SPADES", "KING OF SPADES", "QUEEN OF SPADES", "JACK OF SPADES"]
+tree = MerkleTree(cards)
+print(f"Merkle Root: {tree.root}")
+```
+
+## Merkle Proofs
+
+The real power of Merkle trees is the ability to prove membership without revealing the entire dataset:
+
+```python
+def get_proof(tree, index: int) -> list:
+    """Generate a Merkle proof for a leaf at the given index."""
+    proof = []
+    current_index = index
+
+    for level in tree.tree[:-1]:  # All levels except root
+        if current_index % 2 == 0:
+            sibling_index = current_index + 1
+            direction = 'right'
+        else:
+            sibling_index = current_index - 1
+            direction = 'left'
+
+        if sibling_index < len(level):
+            proof.append((level[sibling_index], direction))
+        current_index = current_index // 2
+
+    return proof
+
+def verify_proof(leaf_value: str, proof: list, root: str) -> bool:
+    """Verify a Merkle proof."""
+    current_hash = sha256(leaf_value)
+
+    for sibling_hash, direction in proof:
+        if direction == 'left':
+            current_hash = hash_pair(sibling_hash, current_hash)
+        else:
+            current_hash = hash_pair(current_hash, sibling_hash)
+
+    return current_hash == root
+
+# Prove that "KING OF SPADES" is in our tree
+proof = get_proof(tree, 1)  # Index 1 = KING OF SPADES
+is_valid = verify_proof("KING OF SPADES", proof, tree.root)
+print(f"Proof valid: {is_valid}")  # True
+
+# Try with a card NOT in the tree
+is_valid = verify_proof("TWO OF HEARTS", proof, tree.root)
+print(f"Proof valid for wrong card: {is_valid}")  # False
+```
+
+This is incredibly powerful - you can prove membership with only O(log n) hashes instead of revealing all n items!
+
 ## Properties and Applications
 
 Now, what's so important about this tree? There are a few interesting properties or applications that we can use.
