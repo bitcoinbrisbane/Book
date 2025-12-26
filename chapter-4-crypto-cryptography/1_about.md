@@ -1,18 +1,13 @@
-# Cryptography
+# About Cryptography
 
-As you're probably aware, computers are deterministic; given a set of inputs they should always return the same outputs. If they didn't, it would be pretty chaotic using a computer! Random Number Generators or RNGs are a way to introduce unpredictability. There are USB hardware devices like the TrueRNG by ubld.it that create randomness for your device or server for around $100 USD.
+Cryptography is the scientific art of concealing data in a manner that makes it impractical or highly time-consuming to reverse engineer the encoded message. In the context of our scenario, where we aim to transmit a confidential message from one party to another, we'll adopt the commonly used actor names Alice and Bob.
 
-Computers and software however, use Pseudo Random Number Generators to create a random output. However, they rely on a "seed" input, often the computer's timestamp. When creating passwords or perhaps more importantly crypto private keys, using a random number is critical. There is a good YouTube video by the former hacker "Kingpin" where he cracks a password on a bitcoin wallet to recover a few million dollars (at time of writing) worth of bitcoin. The software used to generate the password took the computer's time as the seed to generate the password. The attackers took a range of dates where they thought the original password was generated and replayed all the milliseconds in that range. The attack was successful and the coins were recovered!
+Good old Alice and Bob! We'll get used to hearing about their adventures throughout the book.
 
-### RC4
+Let's say Alice and Bob are two parties who have never met, but want to communicate securely over the internet. How could they do this? In this thought experiment, we'll assume that any communication sent by Alice will be intercepted and read by unauthorized parties.
 
-```text
-i = (i + 1) mod 256
-j = (j + Si) mod 256
-swap Si and Sj
-t = (Si + Sj) mod 256
-K = St
-```
+Perhaps the first idea we might come up with is to share some password to encrypt a message, but if the communications are always read in transit, how do we send the password? Perhaps the parties could arrange to meet physically and share some code or password and assume that they're not being watched, but this of course is pretty impractical.
 
-Ciphertext (in base64): `wqLCthTDlMKvZR7Dh8Kvf1JZw5s=`
-Decrypted text: `Hello, World!`
+In 1977 Ron Rivest, Adi Shamir, and Leonard Adleman from MIT invented the RSA algorithm that is widely used for secure data transmission.
+
+In this chapter, we will develop a deeper understanding of the RSA algorithm, and other fundamental cryptographic algorithms that are essential to our application.
