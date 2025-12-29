@@ -2,6 +2,18 @@
 
 This directory contains all code examples for Chapter 4, organized by topic.
 
+## Documentation Statistics
+
+| Directory | Files | Lines | Words | Topics Covered |
+|-----------|-------|-------|-------|----------------|
+| `encryption/` | 4 | 66 | 244 | RC4, 3DES, symmetric encryption |
+| `hash-functions/` | 3 | 76 | 318 | SHA-256 internals, hash properties |
+| `merkle-trees/` | 3 | 139 | 611 | Merkle proofs, blockchain applications |
+| `poker/` | 3 | 106 | 494 | Commitment schemes, mental poker |
+| `randomness/` | 5 | 66 | 254 | PRNGs, avalanche effect |
+| `signing/` | 3 | 234 | 975 | ECDSA, Bitcoin/Ethereum, security |
+| **Total** | **21** | **687** | **2,896** | **6 major topics** |
+
 ## Directory Structure
 
 ```
@@ -76,31 +88,90 @@ node merkle-whitelist.js
 
 ## Topics Covered
 
-### 🔐 Encryption (`encryption/`)
-- **RC4**: Stream cipher (deprecated, educational only)
-- **3DES**: Block cipher (legacy, use AES instead)
-- Understanding symmetric encryption
+### 🔐 Encryption (`encryption/`) - 244 words
+**Files**: `rc4.js`, `tripledes.js`, `tripledes.py`, `README.md`
 
-### #️⃣ Hash Functions (`hash-functions/`)
-- **SHA-256**: Cryptographic hash implementation
-- Internal functions (Ch, Ma, Sigma)
-- Pre-image resistance and collision resistance
+**Sections in README**:
+- Symmetric encryption concepts (block vs stream ciphers)
+- RC4 stream cipher implementation
+- Triple DES (3DES) block cipher
+- Security notes (why RC4 is deprecated)
+- Modes of operation (CBC, GCM)
+- Best practices (use AES-256 instead)
 
-### 🌳 Merkle Trees (`merkle-trees/`)
-- Building Merkle trees from data
-- Generating and verifying proofs
-- Whitelist applications
-- Blockchain use cases (Bitcoin SPV, Ethereum state)
+**Key Concepts**: Stream ciphers, block ciphers, symmetric encryption, CBC mode
 
-### 🎲 Randomness (`randomness/`)
-- **Mersenne Twister**: PRNG algorithm (not cryptographically secure)
-- **Avalanche Effect**: How small input changes create large output changes
-- Cryptographically secure alternatives
+### #️⃣ Hash Functions (`hash-functions/`) - 318 words
+**Files**: `sha256.js`, `sha256_functions.py`, `README.md`
 
-### 🃏 Poker Cryptography (`poker/`)
-- **Commitment Schemes**: Prevent cheating in remote games
-- **Mental Poker**: Trustless card dealing without a dealer
-- Connection to blockchain (HTLCs, multi-sig)
+**Sections in README**:
+- Cryptographic hash function properties
+- SHA-256 internal functions (Ch, Ma, Sigma)
+- Pre-image resistance
+- Collision resistance
+- Applications in Bitcoin, Git, signatures
+- Security notes (SHA-256 vs SHA-3)
+
+**Key Concepts**: One-way functions, avalanche effect, collision resistance, Bitcoin mining
+
+### 🌳 Merkle Trees (`merkle-trees/`) - 611 words
+**Files**: `merkle_tree.py`, `merkle-whitelist.js`, `README.md`
+
+**Sections in README**:
+- What are Merkle trees
+- Merkle proof generation and verification
+- Properties (efficiency, tamper evidence)
+- Applications in Bitcoin SPV
+- Ethereum state trees
+- Whitelist implementation example
+- Security considerations (second pre-image attack)
+
+**Key Concepts**: Binary trees, hash trees, SPV clients, efficient verification, O(log n) proofs
+
+### 🎲 Randomness (`randomness/`) - 254 words
+**Files**: `mersenne-twister.go`, `mersenne-twister.py`, `avalanche-effect.go`, `avalanche-effect.py`, `README.md`
+
+**Sections in README**:
+- Mersenne Twister PRNG algorithm
+- MT19937 properties (period 2^19937-1)
+- Why it's NOT cryptographically secure
+- Avalanche effect demonstration
+- Bit-level change analysis
+- Secure alternatives (crypto/rand, secrets module)
+
+**Key Concepts**: PRNGs, Mersenne Twister, avalanche effect, cryptographic randomness
+
+### 🃏 Poker Cryptography (`poker/`) - 494 words
+**Files**: `commitment-scheme.go`, `mental-poker.go`, `README.md`
+
+**Sections in README**:
+- Commitment scheme properties (hiding, binding)
+- Coin flip game implementation
+- Mental poker protocol
+- Card shuffling without dealer
+- Commutative encryption
+- Zero-knowledge proofs
+- Connection to HTLCs and blockchain
+- Use cases (decentralized gaming, escrow)
+
+**Key Concepts**: Commit-reveal, mental poker, trustless protocols, commutative encryption
+
+### 🔏 Digital Signatures (`signing/`) - 975 words
+**Files**: `ecdsa-signing.go`, `nonce-reuse-attack.go`, `README.md`
+
+**Sections in README**:
+- ECDSA algorithm explanation
+- Key pair generation
+- Signing and verification
+- Bitcoin vs Ethereum differences
+- Nonce reuse catastrophe (with math)
+- Real-world attacks (PS3, Bitcoin wallets)
+- Algorithm comparison (ECDSA, EdDSA, Schnorr, RSA, BLS)
+- Security best practices
+- Multi-signature schemes
+- Key management
+
+**Key Concepts**: ECDSA, secp256k1, private/public keys, nonce reuse, signature malleability, multisig
 
 ## Learning Path
 
@@ -167,16 +238,56 @@ When adding new examples:
 ## References
 
 See the main chapter markdown files for academic references and further reading:
-- `2_randomness.md` - Mersenne Twister, PRNGs
-- `3_hash-functions.md` - SHA-256, collision resistance
-- `5_merkle-trees.md` - Merkle tree theory and applications
-- `6_poker-cryptography.md` - Mental poker, commitment schemes
-- `8_encryption.md` - Symmetric and asymmetric encryption
+- `02_randomness.md` - Mersenne Twister, PRNGs
+- `03_hash-functions.md` - SHA-256, collision resistance
+- `05_merkle-trees.md` - Merkle tree theory and applications
+- `06_poker-cryptography.md` - Mental poker, commitment schemes
+- `07_signing.md` - Digital signatures, ECDSA, Bitcoin/Ethereum
+- `08_encryption.md` - Symmetric and asymmetric encryption
+
+## Summary Statistics
+
+### By Language
+- **Go**: 6 files (signing, poker, randomness examples)
+- **Python**: 5 files (encryption, hashing, merkle trees, randomness)
+- **JavaScript**: 4 files (encryption, hashing, merkle trees)
+- **Documentation**: 6 READMEs (2,896 words total)
+
+### Coverage
+- **Total Code Files**: 15 working examples
+- **Total Lines of Documentation**: 687 lines
+- **Total Words of Documentation**: 2,896 words
+- **Average README Length**: 483 words
+- **Topics Covered**: 30+ cryptographic concepts
+- **Real-World Examples**: Bitcoin, Ethereum, PS3 hack, blockchain protocols
+
+### Complexity Distribution
+| Level | Directories | Description |
+|-------|-------------|-------------|
+| **Beginner** | randomness, hash-functions | Basic concepts, easy to understand |
+| **Intermediate** | encryption, merkle-trees | Requires some crypto knowledge |
+| **Advanced** | poker, signing | Complex protocols, security critical |
+
+### Documentation Quality
+✅ All directories have comprehensive READMEs
+✅ Every README includes running instructions
+✅ Security warnings where applicable
+✅ Real-world use cases and examples
+✅ Cross-references to related topics
+✅ Academic references and further reading
 
 ## Questions or Issues?
 
 Each example includes inline comments and documentation. If something is unclear:
-1. Check the subdirectory README
+1. Check the subdirectory README (2,896 words of documentation available)
 2. Review the corresponding chapter markdown file
 3. Look at related examples for context
 4. Consult the references in the chapter
+
+### Most Comprehensive Documentation
+1. **signing/** (975 words) - Digital signatures, ECDSA, security
+2. **merkle-trees/** (611 words) - Merkle proofs, blockchain applications
+3. **poker/** (494 words) - Commitment schemes, mental poker
+4. **hash-functions/** (318 words) - SHA-256 internals
+5. **randomness/** (254 words) - PRNGs, avalanche effect
+6. **encryption/** (244 words) - Symmetric ciphers
