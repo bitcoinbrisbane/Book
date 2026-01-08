@@ -1,8 +1,6 @@
 # Encryption
 
-It may come as a bit of a surprise to some readers beginning their blockchain journey, that blockchains use little to no encryption. Some will say "encrypted data" when they mean hashed data.
-
-Let's take a look at two types of encryption then explore some algorithms: Asymmetric and Symmetric.
+It may come as a bit of a surprise to some readers beginning their blockchain journey, that blockchains use little to no encryption. Some will say "encrypted data" when they mean hashed data.  Let's take a look at two types of encryption then explore some algorithms: Asymmetric and Symmetric.
 
 ## Symmetric Encryption
 

@@ -20,6 +20,15 @@ This directory contains examples demonstrating digital signature algorithms, key
   - Mathematical explanation of the attack
   - Real-world examples (PS3, Bitcoin wallets)
 
+### Bitcoin Address Generation
+
+- **bitcoin-address-generation.js** - Complete Bitcoin address generation from private key
+  - Step-by-step demonstration of all 6 steps
+  - Private key → Public key (secp256k1)
+  - SHA-256 and RIPEMD-160 hashing
+  - Base58 encoding implementation
+  - Shows both compressed and uncompressed public keys
+
 ## Running the Examples
 
 ### Go Examples
@@ -30,6 +39,17 @@ go run ecdsa-signing.go
 
 # Nonce reuse attack demonstration
 go run nonce-reuse-attack.go
+```
+
+### JavaScript Examples
+
+```bash
+# Install dependencies first (only needed once)
+yarn add secp256k1
+# or: npm install secp256k1
+
+# Bitcoin address generation from private key
+node bitcoin-address-generation.js
 ```
 
 ## Key Concepts

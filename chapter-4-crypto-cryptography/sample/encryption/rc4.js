@@ -39,7 +39,7 @@ function rc4(key, plaintext) {
 const key = "mysecretkey";
 const plaintext = "Hello, World!";
 const ciphertext = rc4(key, plaintext);
-console.log("Ciphertext (in base64):", Buffer.from(ciphertext).toString('base64'));
+console.log("Ciphertext (in base64):", Buffer.from(ciphertext).toString("base64"));
 
 // To decrypt, use the same key and the ciphertext as input
 const decryptedText = rc4(key, ciphertext);

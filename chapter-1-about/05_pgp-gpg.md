@@ -89,9 +89,59 @@ For my lucas@lucascullen.com public key, it would be:
 gpg --import 93455CE0D1A7AC071201CB7E52E769C9FFA25B92.asc
 ```
 
-Then run `gpg --list-keys` to double check it's imported. Now that you have done this, feel free to send me an encrypted email!
+Then run `gpg --list-keys` to double check it's imported. Now that you have done this, feel free to send me an encrypted email!  Below is some Node.js code to fetch the key from the key server and keep it in memory instead of downloading to disk, then encrypt a message.
 
-Below is some Node.js code to fetch the key from the key server and keep it in memory instead of downloading to disk, then encrypt a message.
+```javascript
+const openpgp = require('openpgp');
+const axios = require('axios');
+
+// Function to fetch a public key from keys.openpgp.org
+async function fetchPublicKey(email) {
+  const url = `https://keys.openpgp.org/vks/v1/by-email/${encodeURIComponent(email)}`;
+
+  try {
+    const response = await axios.get(url);
+    return response.data;
+  } catch (error) {
+    throw new Error(`Failed to fetch key: ${error.message}`);
+  }
+}
+
+// Example usage: Fetch and encrypt a message
+async function encryptMessage(email, messageText) {
+  try {
+    // Fetch the public key
+    const publicKeyArmored = await fetchPublicKey(email);
+    console.log('Public key fetched successfully');
+
+    // Read the public key
+    const publicKey = await openpgp.readKey({ armoredKey: publicKeyArmored });
+
+    // Create encrypted message
+    const message = await openpgp.createMessage({ text: messageText });
+    const encrypted = await openpgp.encrypt({
+      message,
+      encryptionKeys: publicKey
+    });
+
+    console.log('Encrypted message:');
+    console.log(encrypted);
+
+    return encrypted;
+  } catch (error) {
+    console.error('Error:', error.message);
+  }
+}
+
+// Run the example
+encryptMessage('lucas@lucascullen.com', 'Hello, this is a secret message!');
+```
+
+To use this code, first install the required libraries:
+
+```bash
+npm install openpgp axios
+```
 
 ## Exporting Your Private Key
 
@@ -117,14 +167,14 @@ cat lucas_private_key.asc
 
 You should now see a private key block, something like:
 
-```
+```text
 -----BEGIN PGP PRIVATE KEY BLOCK-----
 lQcXBF8EGIoBEACq3GiUIDAn7bonDUJqaz2XkW1QStLxRhVxElxE8FCoLdkZ1lkQ
 qozKm51B+qwIzboCP1jA7uIg4++ZXjcl3TKJ+2e9LGsIH5SomLSI/k21hqGFO4mt
 -----END PGP PRIVATE KEY BLOCK-----
 ```
 
-As this is ASCII, we can import into our program as a string or using a file reader.
+As this is ASCII, we can import into our program as a string or using a file reader.  Go ahead and send me an encrypted message!
 
 ## References
 

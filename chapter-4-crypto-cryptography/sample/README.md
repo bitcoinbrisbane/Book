@@ -11,8 +11,8 @@ This directory contains all code examples for Chapter 4, organized by topic.
 | `merkle-trees/` | 3 | 139 | 611 | Merkle proofs, blockchain applications |
 | `poker/` | 3 | 106 | 494 | Commitment schemes, mental poker |
 | `randomness/` | 5 | 66 | 254 | PRNGs, avalanche effect |
-| `signing/` | 3 | 234 | 975 | ECDSA, Bitcoin/Ethereum, security |
-| **Total** | **21** | **687** | **2,896** | **6 major topics** |
+| `signing/` | 4 | 390 | 975 | ECDSA, Bitcoin/Ethereum, security |
+| **Total** | **22** | **843** | **2,896** | **6 major topics** |
 
 ## Directory Structure
 
@@ -31,11 +31,15 @@ sample/
 ├── poker/              # Poker cryptography (commitment schemes, mental poker)
 │   ├── commitment-scheme.go
 │   └── mental-poker.go
-└── randomness/         # PRNGs and randomness demonstrations
-    ├── avalanche-effect.go
-    ├── avalanche-effect.py
-    ├── mersenne-twister.go
-    └── mersenne-twister.py
+├── randomness/         # PRNGs and randomness demonstrations
+│   ├── avalanche-effect.go
+│   ├── avalanche-effect.py
+│   ├── mersenne-twister.go
+│   └── mersenne-twister.py
+└── signing/            # Digital signatures and cryptographic signing
+    ├── ecdsa-signing.go
+    ├── nonce-reuse-attack.go
+    └── bitcoin-address-generation.js
 ```
 
 ## Quick Start
@@ -49,23 +53,33 @@ Each subdirectory contains a README with:
 ### Running Go Examples
 
 ```bash
-cd poker
+# From the sample/ directory:
+cd sample/poker
 go run commitment-scheme.go
+go run mental-poker.go
 
 cd ../randomness
 go run mersenne-twister.go
 go run avalanche-effect.go
+
+cd ../signing
+go run ecdsa-signing.go
+go run nonce-reuse-attack.go
 ```
 
 ### Running Python Examples
 
 ```bash
-cd randomness
+# From the sample/ directory:
+cd sample/randomness
 python3 mersenne-twister.py
 python3 avalanche-effect.py
 
 cd ../merkle-trees
 python3 merkle_tree.py
+
+cd ../hash-functions
+python3 sha256_functions.py
 
 cd ../encryption
 pip install pycryptodome  # Only needed for tripledes.py
@@ -75,7 +89,8 @@ python3 tripledes.py
 ### Running JavaScript Examples
 
 ```bash
-cd encryption
+# From the sample/ directory:
+cd sample/encryption
 node rc4.js
 node tripledes.js
 
@@ -84,6 +99,10 @@ node sha256.js
 
 cd ../merkle-trees
 node merkle-whitelist.js
+
+cd ../signing
+yarn add secp256k1  # Install dependencies first
+node bitcoin-address-generation.js
 ```
 
 ## Topics Covered
@@ -157,7 +176,7 @@ node merkle-whitelist.js
 **Key Concepts**: Commit-reveal, mental poker, trustless protocols, commutative encryption
 
 ### 🔏 Digital Signatures (`signing/`) - 975 words
-**Files**: `ecdsa-signing.go`, `nonce-reuse-attack.go`, `README.md`
+**Files**: `ecdsa-signing.go`, `nonce-reuse-attack.go`, `bitcoin-address-generation.js`, `README.md`
 
 **Sections in README**:
 - ECDSA algorithm explanation
@@ -250,12 +269,12 @@ See the main chapter markdown files for academic references and further reading:
 ### By Language
 - **Go**: 6 files (signing, poker, randomness examples)
 - **Python**: 5 files (encryption, hashing, merkle trees, randomness)
-- **JavaScript**: 4 files (encryption, hashing, merkle trees)
+- **JavaScript**: 5 files (encryption, hashing, merkle trees, signing)
 - **Documentation**: 6 READMEs (2,896 words total)
 
 ### Coverage
-- **Total Code Files**: 15 working examples
-- **Total Lines of Documentation**: 687 lines
+- **Total Code Files**: 16 working examples
+- **Total Lines of Documentation**: 843 lines
 - **Total Words of Documentation**: 2,896 words
 - **Average README Length**: 483 words
 - **Topics Covered**: 30+ cryptographic concepts

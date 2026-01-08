@@ -7,6 +7,7 @@ When working with cryptographic data, we often need to represent binary data as 
 Hexadecimal uses 16 characters: `0-9` and `a-f`. Each hex character represents 4 bits (a nibble), so two hex characters represent one byte.
 
 **Example:**
+
 ```
 Binary: 11111111
 Hex: ff
@@ -55,8 +56,6 @@ The Base58 alphabet is:
 | Hex | 16 | Low | Debug, hash display |
 | Base64 | 64 | High | Data transfer |
 | Base58 | 58 | Medium | Human-readable addresses |
-
-## Why Different Encodings Matter
 
 Understanding encodings is crucial because:
 
