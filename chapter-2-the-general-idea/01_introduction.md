@@ -4,7 +4,7 @@ Blockchains are collections of connected nodes that listen for state changes and
 
 State of course can represent a number, which in turn can represent value. State variables can be of typical programming language types, such as booleans, numbers and strings, or complex types, data structures and objects that represent or model ideas or real world objects.
 
-In 2022 there are some db designs such as...
+In 2026 there are some db designs such as...
 
 So why poker? Poker is a turn based game, where each player agrees, or should agree, on the rules of the game. Then, let's say outside of a casino for example, each player witnesses the game and agrees that that turn or action was within the agreed rules of the game.
 
