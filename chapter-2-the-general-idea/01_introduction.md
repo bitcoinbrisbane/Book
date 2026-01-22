@@ -1,5 +1,3 @@
-# Page 1
-
 Blockchains are collections of connected nodes that listen for state changes and then replicate the data to all other nodes. This is similar to how a replicated database works, but with a few differences. Blockchains have been referred to as a good way to transfer value. I don't think this is entirely correct. Blockchains are a way for machines to change the state of the system, while allowing users to manage the state via transactions signed by their private keys.
 
 State of course can represent a number, which in turn can represent value. State variables can be of typical programming language types, such as booleans, numbers and strings, or complex types, data structures and objects that represent or model ideas or real world objects.
