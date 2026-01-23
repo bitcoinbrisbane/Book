@@ -38,6 +38,19 @@
 
 * [What is Consensus and Why Does it Matter?](chapter-7-consensus/01_what-and-why.md)
 
+## Chapter 8: CardLang
+
+* [Introduction](chapter-8-cardlang/01_introduction.md)
+* [Related Work](chapter-8-cardlang/02_related-work.md)
+* [Primitive Types](chapter-8-cardlang/03_primitive-types.md)
+* [Deck Definitions](chapter-8-cardlang/04_deck-definitions.md)
+* [Deterministic Shuffling](chapter-8-cardlang/05_deterministic-shuffling.md)
+* [The Draw Primitive](chapter-8-cardlang/06_draw-primitive.md)
+* [Deck Manipulation Primitives](chapter-8-cardlang/07_deck-manipulation.md)
+* [Ranking Systems](chapter-8-cardlang/08_ranking-systems.md)
+* [Game Specification](chapter-8-cardlang/09_game-specification.md)
+* [Implementation](chapter-8-cardlang/10_implementation.md)
+
 ## Additional Topics
 
 * [Bitcoin Block Structure](blockchain-block.md)
