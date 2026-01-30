@@ -39,6 +39,53 @@ Select the following options:
 
 Add a strong password and you've created the key.
 
+After creating the key, you can verify it was created successfully:
+
+```bash
+gpg --list-keys pgp@example.com
+```
+
+This should display output similar to:
+
+```text
+pub   ed25519 2026-01-08 [SC]
+      6B09B6CD2D40706D04D06DB92D234BB1A1ECB31F
+uid           [ultimate] Example User <pgp@example.com>
+sub   cv25519 2026-01-08 [E]
+```
+
+The output shows:
+- The public key type (ed25519) and creation date
+- The full key fingerprint (6B09B6CD2D40706D04D06DB92D234BB1A1ECB31F)
+- The user ID with name and email
+- The encryption subkey (cv25519)
+
+## Exporting Your Public Key
+
+Before publishing, you can export your public key to share with others:
+
+```bash
+gpg --armor --export pgp@example.com
+```
+
+This outputs the public key in ASCII armor format:
+
+```text
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+mDMEaV84GhYJKwYBBAHaRw8BAQdA9LRVC3g1i9AvTiaDVxgTF1ari8RhUTzwiXKn
+qZaAUy+0HkV4YW1wbGUgVXNlciA8cGdwQGV4YW1wbGUuY29tPoiTBBMWCAA7FiEE
+awm2zS1AcG0E0G25LSNLsaHssx8FAmlfOBoCGwMFCwkIBwICIgIGFQoJCAsCBBYC
+AwECHgMCF4AACgkQLSNLsaHssx9LTwEAjnm5lnLvmbnnNQorOKvTPUYAY3HYLJ2T
+g27OlDd35wgA/2zN87gWtPITDjTruAT+ljUsAT7GQj7yyVDpNEzq12QGuDgEaV84
+GhIKKwYBBAGXVQEFAQEHQO8Tc1u5tXgwtxvEGTvEJP1zGEyf9X7CxZ+8sdAUZ0wC
+AwEIB4h4BBgWCAAgFiEEawm2zS1AcG0E0G25LSNLsaHssx8FAmlfOBoCGwwACgkQ
+LSNLsaHssx/nswD+L8yHnv0fI3h9lV5kQPybJDn+s6jCfBQxhH+sXaEAf74A/izv
+FlHNnDRuUlIjI2zyUw1qKGb53AV7vXt/36vCboUJ
+=yS4V
+-----END PGP PUBLIC KEY BLOCK-----
+```
+
 ## Publishing to a Key Server
 
 Next we should push to one or more key servers. We can do this in terminal:
@@ -50,16 +97,16 @@ gpg --send-keys [KEY ID]
 For example:
 
 ```bash
-gpg --send-keys F68AA906B5BE601AC49EF83DC61F975DEBDEDC6B
+gpg --send-keys 6B09B6CD2D40706D04D06DB92D234BB1A1ECB31F
 ```
 
 This should display:
 
 ```
-gpg: sending key C61F975DEBDEDC6B to hkps://keys.openpgp.org
+gpg: sending key 2D234BB1A1ECB31F to hkps://keys.openpgp.org
 ```
 
-If that was successful you should now be able to search on keys.openpgp.org by the email address, key ID or its fingerprint which was also displayed back to the terminal as `C61F975DEBDEDC6B`.
+If that was successful you should now be able to search on keys.openpgp.org by the email address, key ID or its fingerprint which was also displayed back to the terminal as `2D234BB1A1ECB31F`.
 
 To specify the key server, you can check the documentation of each key server.
 
@@ -83,13 +130,13 @@ You can import it into the OS with the following command:
 gpg --import [KEY ID].asc
 ```
 
-For my lucas@lucascullen.com public key, it would be:
+For the pgp@example.com public key, it would be:
 
 ```bash
-gpg --import 93455CE0D1A7AC071201CB7E52E769C9FFA25B92.asc
+gpg --import 6B09B6CD2D40706D04D06DB92D234BB1A1ECB31F.asc
 ```
 
-Then run `gpg --list-keys` to double check it's imported. Now that you have done this, feel free to send me an encrypted email!  Below is some Node.js code to fetch the key from the key server and keep it in memory instead of downloading to disk, then encrypt a message.
+Then run `gpg --list-keys` to double check it's imported. Below is some Node.js code to fetch the key from the key server and keep it in memory instead of downloading to disk, then encrypt a message.
 
 ```javascript
 const openpgp = require('openpgp');
@@ -134,7 +181,7 @@ async function encryptMessage(email, messageText) {
 }
 
 // Run the example
-encryptMessage('lucas@lucascullen.com', 'Hello, this is a secret message!');
+encryptMessage('pgp@example.com', 'Hello, this is a secret message!');
 ```
 
 To use this code, first install the required libraries:
@@ -149,32 +196,43 @@ You will note that the Node.js code reads the private key from a file. Here's ho
 
 ```bash
 cd ~/Downloads
-gpg --export-secret-keys lucas@lucascullen.com > lucas_private_key.asc
+gpg --export-secret-keys pgp@example.com > example_private_key.asc
 ```
 
 Now if we cat the file:
 
 ```bash
-cat lucas_private_key.asc
+cat example_private_key.asc
 ```
 
 You will see it's not ASCII encoded. We can "fix" this by using the `--armor` flag:
 
 ```bash
-gpg --export-secret-keys --armor lucas@lucascullen.com > lucas_private_key.asc
-cat lucas_private_key.asc
+gpg --export-secret-keys --armor pgp@example.com > example_private_key.asc
+cat example_private_key.asc
 ```
 
 You should now see a private key block, something like:
 
 ```text
 -----BEGIN PGP PRIVATE KEY BLOCK-----
-lQcXBF8EGIoBEACq3GiUIDAn7bonDUJqaz2XkW1QStLxRhVxElxE8FCoLdkZ1lkQ
-qozKm51B+qwIzboCP1jA7uIg4++ZXjcl3TKJ+2e9LGsIH5SomLSI/k21hqGFO4mt
+
+lFgEaV84GhYJKwYBBAHaRw8BAQdA9LRVC3g1i9AvTiaDVxgTF1ari8RhUTzwiXKn
+qZaAUy8AAP43mOiXJlnYygQQSz2n8HlawLh1V9DW8KrKYLwQBxL4dBFytB5FeGFt
+cGxlIFVzZXIgPHBncEBleGFtcGxlLmNvbT6IkwQTFggAOxYhBGsJts0tQHBtBNBt
+uS0jS7Gh7LMfBQJpXzgaAhsDBQsJCAcCAiICBhUKCQgLAgQWAgMBAh4DAheAAAoJ
+EC0jS7Gh7LMfS08BAI55uZZy75m55zUKKzir0z1GAGNx2Cydk4NuzpQ3d+cIAP9s
+zfO4FrTyEw4067gE/pY1LAE+xkI+8slQ6TRM6tdkBpxdBGlfOBoSCisGAQQBl1UB
+BQEBB0DvE3NbubV4MLcbxBk7xCT9cxhMn/V+wsWfvLHQFGdMAgMBCAcAAP9+THUR
+GdUHk71FaR3UJ8bHq8t75fNl5Rz77olqOyzL+BIciHgEGBYIACAWIQRrCbbNLUBw
+bQTQbbktI0uxoeyzHwUCaV84GgIbDAAKCRAtI0uxoeyzH+ezAP4vzIee/R8jeH2V
+XmRA/JskOf6zqMJ8FDGEf6xdoQB/vgD+LO8WUc2cNG5SUiMjbPJTDWooZvncBXu9
+e3/fq8JuhQk=
+=/y2u
 -----END PGP PRIVATE KEY BLOCK-----
 ```
 
-As this is ASCII, we can import into our program as a string or using a file reader.  Go ahead and send me an encrypted message!
+As this is ASCII, we can import into our program as a string or using a file reader.
 
 ## References
 
