@@ -13,8 +13,8 @@
 
 ## Chapter 2: The General Idea
 
-* [The Idea](chapter-2-the-general-idea/the-idea.md)
-* [Page 1](chapter-2-the-general-idea/page-1.md)
+* [Introduction](chapter-2-the-general-idea/01_introduction.md)
+* [The Idea](chapter-2-the-general-idea/02_the-idea.md)
 
 ## Chapter 3: Architecture
 
