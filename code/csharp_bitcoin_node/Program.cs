@@ -1,6 +1,5 @@
 using System.Buffers.Binary;
 using System.Diagnostics;
-using System.Net;
 
 namespace BookBitcoinNode;
 
@@ -20,62 +19,35 @@ public class Program
         var endpoints = await Discovery.ResolveSeedsAsync(ct);
         Console.WriteLine($"    {endpoints.Count} candidate peers\n");
 
-        Console.WriteLine("[2] Connecting to a peer…");
-        await using var peer = new PeerConnection();
-        var connected = await TryConnect(peer, endpoints, ct);
-        if (connected == null) { Console.WriteLine("    no peers reachable"); return; }
-        Console.WriteLine($"    connected to {connected}\n");
+        await using var session = new PeerSession(endpoints, ct);
 
-        Console.WriteLine("[3] Handshaking…");
-        await peer.HandshakeAsync(0, ct);
-        Console.WriteLine("    handshake complete\n");
+        Console.WriteLine("[2/3] Connecting + handshaking…");
+        if (!await session.EnsureConnectedAsync(0))
+        {
+            Console.WriteLine("    no peers reachable");
+            return;
+        }
+        Console.WriteLine();
 
-        using var store = new SqliteBlockStore("node.db");
+        using IBlockStore store = new SqliteBlockStore("node.db");
 
         Console.WriteLine($"[4] Header sync (target: {maxBlocks} blocks)…");
-        var headers = await DownloadHeaders(peer, store, maxBlocks, ct);
+        var headers = await DownloadHeaders(session, store, maxBlocks, ct);
         Console.WriteLine($"    {headers.Count} headers validated and stored\n");
 
+        if (headers.Count == 0) return;
+
         Console.WriteLine("[5] Block download…");
-        var sw = Stopwatch.StartNew();
-        int valid = 0, totalTxs = 0;
-        long totalBytes = 0;
-
-        for (int i = 0; i < headers.Count; i++)
-        {
-            await SendGetData(peer, headers[i].Hash, ct);
-            var blk = await WaitForBlock(peer, ct);
-
-            if (!Validator.CheckProofOfWork(blk.Header) || !Validator.CheckMerkleRoot(blk))
-            {
-                Console.WriteLine($"    block at height {i + 1} FAILED validation");
-                continue;
-            }
-
-            int size = 80 + blk.Transactions.Sum(t => t.Size);
-            store.InsertBlock(blk, size);
-            valid++;
-            totalTxs += blk.Transactions.Count;
-            totalBytes += size;
-
-            if ((i + 1) % 500 == 0 || i + 1 == headers.Count)
-            {
-                var rate = (i + 1) / sw.Elapsed.TotalSeconds;
-                Console.WriteLine(
-                    $"    {i + 1}/{headers.Count}   {rate:F0} blocks/s   {totalTxs} txs   {totalBytes / 1024:N0} KiB");
-            }
-        }
-
-        Console.WriteLine($"\n    {valid}/{headers.Count} blocks valid in {sw.Elapsed.TotalSeconds:F1}s");
-        Console.WriteLine($"    {totalTxs} transactions, {totalBytes / 1024:N0} KiB persisted to node.db");
+        await DownloadBlocks(session, headers, store, ct);
         Console.WriteLine("\nDone.");
     }
 
     // Walks the chain forward, one `getheaders` round per 2000 headers, until either
     // the peer has nothing more or we hit `max`. Each header is checked for chain
-    // continuity (prev == last) and proof-of-work before persistence.
+    // continuity (prev == last) and proof-of-work before persistence. If the peer
+    // drops, we fall back to the next candidate and resume from the latest hash.
     private static async Task<List<BlockHeader>> DownloadHeaders(
-        PeerConnection peer, SqliteBlockStore store, int max, CancellationToken ct)
+        PeerSession session, IBlockStore store, int max, CancellationToken ct)
     {
         var all = new List<BlockHeader>();
         var locator = GenesisHashLE;
@@ -83,8 +55,20 @@ public class Program
 
         while (all.Count < max)
         {
-            await SendGetHeaders(peer, locator, ct);
-            var batch = await WaitForHeaders(peer, ct);
+            List<BlockHeader> batch;
+            try
+            {
+                await SendGetHeaders(session.Peer, locator, ct);
+                batch = await WaitForHeaders(session.Peer, ct);
+            }
+            catch (Exception ex) when (PeerSession.IsPeerDisconnect(ex))
+            {
+                Console.WriteLine($"    peer dropped during header sync ({ex.GetType().Name}), reconnecting…");
+                await session.DropAsync();
+                if (!await session.EnsureConnectedAsync(all.Count)) break;
+                continue;
+            }
+
             if (batch.Count == 0) break;
 
             foreach (var h in batch)
@@ -113,25 +97,107 @@ public class Program
         return all;
     }
 
-    private static async Task<IPEndPoint?> TryConnect(
-        PeerConnection peer, List<IPEndPoint> endpoints, CancellationToken ct)
+    private static async Task DownloadBlocks(
+        PeerSession session, List<BlockHeader> headers, IBlockStore store, CancellationToken ct)
     {
-        foreach (var ep in endpoints.Take(10))
+        var sw = Stopwatch.StartNew();
+        int valid = 0, totalTxs = 0;
+        int maxTxsInBlock = 0;
+        long totalBytes = 0;
+
+        for (int i = 0; i < headers.Count; i++)
         {
+            Block blk;
             try
             {
-                using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
-                timeout.CancelAfter(TimeSpan.FromSeconds(5));
-                await peer.ConnectAsync(ep, timeout.Token);
-                return ep;
+                await SendGetData(session.Peer, headers[i].Hash, ct);
+                blk = await WaitForBlock(session.Peer, ct);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (PeerSession.IsPeerDisconnect(ex))
             {
-                Console.WriteLine($"    {ep}: {ex.Message}");
+                Log($"    peer dropped at block {i + 1} ({ex.GetType().Name}), reconnecting…");
+                await session.DropAsync();
+                if (!await session.EnsureConnectedAsync(i)) break;
+                i--; // retry this block on the new peer
+                continue;
+            }
+
+            if (!Validator.CheckProofOfWork(blk.Header) || !Validator.CheckMerkleRoot(blk))
+            {
+                Log($"    block at height {i + 1} FAILED validation");
+                continue;
+            }
+
+            int size = 80 + blk.Transactions.Sum(t => t.Size);
+            store.InsertBlock(blk, size);
+            valid++;
+            totalTxs += blk.Transactions.Count;
+            if (blk.Transactions.Count > maxTxsInBlock) maxTxsInBlock = blk.Transactions.Count;
+            totalBytes += size;
+
+            int height = i + 1;
+            double elapsed = Math.Max(0.001, sw.Elapsed.TotalSeconds);
+            double rate = height / elapsed;
+            int remaining = headers.Count - height;
+            TimeSpan eta = rate > 0 ? TimeSpan.FromSeconds(remaining / rate) : TimeSpan.Zero;
+            string shortHash = Crypto.ToHexBigEndian(blk.Header.Hash)[..16];
+
+            Status(
+                $"    [{height,6}/{headers.Count}] {shortHash}…  " +
+                $"{blk.Transactions.Count,4} tx  {FormatBytes(size),9}  " +
+                $"|  total {totalTxs,7:N0} txs / {FormatBytes(totalBytes),9}  " +
+                $"|  {rate,5:F1} blk/s  ETA {FormatEta(eta)}");
+
+            // Highlight any block above 100 txs as "fat" — early in the chain those are interesting.
+            if (blk.Transactions.Count >= 100)
+            {
+                Log($"    fat block #{height}: {blk.Transactions.Count:N0} txs, {FormatBytes(size)}, hash {shortHash}…");
+            }
+
+            // Permanent checkpoint every 100 blocks so scrollback shows the curve.
+            if (height % 100 == 0 || height == headers.Count)
+            {
+                Log($"    ── {height,6}/{headers.Count}  total {totalTxs,7:N0} txs / {FormatBytes(totalBytes),9}  " +
+                    $"avg {rate:F1} blk/s  ETA {FormatEta(eta)} ──");
             }
         }
-        return null;
+
+        Log("");
+        Log($"    {valid}/{headers.Count} blocks valid in {sw.Elapsed.TotalSeconds:F1}s ({valid / Math.Max(0.001, sw.Elapsed.TotalSeconds):F1} blk/s avg)");
+        Log($"    {totalTxs:N0} transactions ({maxTxsInBlock:N0} tx max in a single block)");
+        Log($"    {FormatBytes(totalBytes)} persisted to node.db");
     }
+
+    // --- Console helpers: a single mutable status line with checkpoint logging ---
+
+    private static int _lastStatusLen;
+
+    private static void Status(string line)
+    {
+        var padding = Math.Max(0, _lastStatusLen - line.Length);
+        Console.Write("\r" + line + new string(' ', padding));
+        _lastStatusLen = line.Length;
+    }
+
+    private static void Log(string line)
+    {
+        if (_lastStatusLen > 0)
+        {
+            Console.Write("\r" + new string(' ', _lastStatusLen) + "\r");
+            _lastStatusLen = 0;
+        }
+        Console.WriteLine(line);
+    }
+
+    private static string FormatBytes(long bytes) =>
+        bytes >= 1024 * 1024 ? $"{bytes / 1024.0 / 1024:F1} MiB" :
+        bytes >= 1024 ? $"{bytes / 1024.0:F1} KiB" :
+        $"{bytes} B";
+
+    private static string FormatEta(TimeSpan t) =>
+        t.TotalHours >= 1 ? $"{(int)t.TotalHours}h{t.Minutes:D2}m" :
+        t.TotalMinutes >= 1 ? $"{(int)t.TotalMinutes}m{t.Seconds:D2}s" :
+        $"{(int)Math.Ceiling(t.TotalSeconds)}s";
 
     private static async Task SendGetHeaders(
         PeerConnection peer, byte[] locatorHashLE, CancellationToken ct)

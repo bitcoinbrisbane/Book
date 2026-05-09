@@ -2,7 +2,13 @@ using Microsoft.Data.Sqlite;
 
 namespace BookBitcoinNode;
 
-public sealed class SqliteBlockStore : IDisposable
+public interface IBlockStore : IDisposable
+{
+    void InsertHeader(BlockHeader header, int height);
+    void InsertBlock(Block block, int totalSize);
+}
+
+public sealed class SqliteBlockStore : IBlockStore
 {
     private readonly SqliteConnection _conn;
 
