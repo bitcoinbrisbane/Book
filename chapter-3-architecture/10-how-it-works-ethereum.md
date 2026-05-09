@@ -16,6 +16,8 @@ flowchart TD
     I --> J[Gossip block over devp2p]
 ```
 
+> **What was The Merge?** On 15 September 2022, Ethereum switched its consensus mechanism from proof-of-work (miners burning electricity to find a hash) to proof-of-stake (validators putting up 32 ETH as collateral and being slashed for misbehaviour). The "merge" refers to the existing execution chain — accounts, contracts, balances — being joined to the new Beacon Chain that had been running PoS in parallel since December 2020. No history was lost; mining simply stopped at one block and the next block was proposed by a staker. Energy use dropped by ~99.95% overnight. The change was *enormous* socially and politically inside the project — which is a good place to flag that we'll cover governance in decentralised projects in a later chapter.
+
 After The Merge, Ethereum is split between an **execution layer** (Geth, Nethermind, Besu, Erigon, Reth) and a **consensus layer** (Lighthouse, Prysm, Teku, Nimbus, Lodestar). The consensus client decides *which* block is canonical and *when* to build one; the execution client handles transactions, the EVM, and state. They talk over the [Engine API](https://github.com/ethereum/execution-apis/blob/main/src/engine/common.md). Everything below is the execution client's job.
 
 ### 1. Receiving a transaction

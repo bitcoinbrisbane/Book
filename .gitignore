@@ -399,3 +399,6 @@ FodyWeavers.xsd
 *.sln.iml
 
 /chapter-4-crypto-cryptography/env/*
+
+# SQLite outputs from the C# toy node example
+*.db
