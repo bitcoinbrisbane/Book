@@ -7,3 +7,5 @@ The idea of "poker over the phone" where by parties can plan on insecure channel
 For our project become a thing, we must also include a few other components which make it perfect for a blockchian application.  Poker is fundametly about money.  Remove the financial incenctives of poker and it gets boring really quickly.  Stablecoins have become the backbone for adoption, with USDC and USDT market share.
 
 (Genius bill?)
+
+Need to have a part about other US legals

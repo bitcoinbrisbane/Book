@@ -13,14 +13,27 @@ export type GitStatus = {
   current: string | null
 }
 
+export type BookSummary = {
+  chapters: number
+  words: number
+  branch: string | null
+  modified: number
+  ahead: number
+  behind: number
+}
+
 export const api = {
   listTree: (): Promise<TreeNode[]> => ipcRenderer.invoke('book:listTree'),
   readFile: (path: string): Promise<string> => ipcRenderer.invoke('book:readFile', path),
   writeFile: (path: string, content: string): Promise<void> =>
     ipcRenderer.invoke('book:writeFile', path, content),
   gitStatus: (): Promise<GitStatus> => ipcRenderer.invoke('book:gitStatus'),
+  summary: (): Promise<BookSummary> => ipcRenderer.invoke('book:summary'),
   gitCommitPush: (message: string): Promise<{ ok: boolean; error?: string }> =>
     ipcRenderer.invoke('book:gitCommitPush', message),
+  suggestCommitMessage: (): Promise<
+    { ok: true; message: string } | { ok: false; error: string }
+  > => ipcRenderer.invoke('book:suggestCommitMessage'),
   root: (): Promise<string> => ipcRenderer.invoke('book:root')
 }
 

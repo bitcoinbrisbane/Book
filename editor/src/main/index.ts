@@ -2,6 +2,7 @@ import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import { join, resolve, relative, sep, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { readFile, writeFile, readdir, stat } from 'node:fs/promises'
+import { spawn } from 'node:child_process'
 import simpleGit from 'simple-git'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -13,6 +14,17 @@ const git = simpleGit(BOOK_ROOT)
 type TreeNode =
   | { type: 'dir'; name: string; path: string; children: TreeNode[] }
   | { type: 'file'; name: string; path: string }
+
+function countWords(text: string): number {
+  const stripped = text
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/`[^`]*`/g, ' ')
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/[#>*_~\-]/g, ' ')
+  const matches = stripped.match(/\S+/g)
+  return matches ? matches.length : 0
+}
 
 function safeResolve(relPath: string): string {
   const abs = resolve(BOOK_ROOT, relPath)
@@ -53,6 +65,40 @@ async function listMarkdownIn(absDir: string, relDir: string): Promise<TreeNode[
   return out
 }
 
+const COMMIT_PROMPT = `You are writing a git commit message for a Markdown book repository.
+
+A unified git diff will be provided on stdin. Read it and output ONE conventional-commit message:
+- First line: imperative subject, <= 72 chars, prefixed with one of: chore:, feat:, fix:, docs:, refactor:.
+- Optionally one blank line then 1-3 short bullets starting with "- ".
+- Output ONLY the message. No code fences. No preamble. No trailing commentary.`
+
+const MAX_DIFF_BYTES = 200_000
+
+function runClaudeForCommitMessage(diff: string): Promise<string> {
+  const payload = diff.length > MAX_DIFF_BYTES ? diff.slice(0, MAX_DIFF_BYTES) : diff
+  return new Promise((resolveP, rejectP) => {
+    const proc = spawn('claude', ['-p', COMMIT_PROMPT], {
+      stdio: ['pipe', 'pipe', 'pipe'],
+      cwd: BOOK_ROOT
+    })
+    let stdout = ''
+    let stderr = ''
+    proc.stdout.on('data', (d) => (stdout += d.toString()))
+    proc.stderr.on('data', (d) => (stderr += d.toString()))
+    proc.on('error', rejectP)
+    proc.on('close', (code) => {
+      if (code !== 0) {
+        return rejectP(new Error(stderr.trim() || `claude exited ${code}`))
+      }
+      const msg = stdout.trim().replace(/^```[a-z]*\n?|\n?```$/g, '').trim()
+      if (!msg) return rejectP(new Error('claude returned empty output'))
+      resolveP(msg)
+    })
+    proc.stdin.write(payload)
+    proc.stdin.end()
+  })
+}
+
 function registerHandlers() {
   ipcMain.handle('book:listTree', () => listTree())
 
@@ -75,6 +121,53 @@ function registerHandlers() {
       ahead: s.ahead,
       behind: s.behind,
       current: s.current
+    }
+  })
+
+  ipcMain.handle('book:summary', async () => {
+    const tree = await listTree()
+    const files: string[] = []
+    const collect = (nodes: TreeNode[]) => {
+      for (const n of nodes) {
+        if (n.type === 'file') files.push(n.path)
+        else collect(n.children)
+      }
+    }
+    collect(tree)
+    let words = 0
+    for (const rel of files) {
+      try {
+        const text = await readFile(safeResolve(rel), 'utf8')
+        words += countWords(text)
+      } catch {
+        // ignore unreadable files
+      }
+    }
+    let branch: string | null = null
+    let modified = 0
+    let ahead = 0
+    let behind = 0
+    try {
+      const s = await git.status()
+      branch = s.current
+      modified = s.modified.length + s.not_added.length + s.staged.length
+      ahead = s.ahead
+      behind = s.behind
+    } catch {
+      // ignore — repo may not be initialised
+    }
+    return { chapters: files.length, words, branch, modified, ahead, behind }
+  })
+
+  ipcMain.handle('book:suggestCommitMessage', async () => {
+    try {
+      await git.add('.')
+      const diff = await git.diff(['--cached'])
+      if (!diff.trim()) return { ok: false, error: 'nothing staged' }
+      const message = await runClaudeForCommitMessage(diff)
+      return { ok: true, message }
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : String(err) }
     }
   })
 

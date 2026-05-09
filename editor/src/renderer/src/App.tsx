@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { TreeNode } from '../../preload'
+import type { BookSummary, TreeNode } from '../../preload'
 import Sidebar from './components/Sidebar'
 import Editor from './components/Editor'
+import Preview from './components/Preview'
 import StatusBar from './components/StatusBar'
 
 export default function App() {
@@ -11,11 +12,19 @@ export default function App() {
   const [savedContent, setSavedContent] = useState('')
   const [bookRoot, setBookRoot] = useState('')
   const [status, setStatus] = useState('')
+  const [showPreview, setShowPreview] = useState(true)
+  const [summary, setSummary] = useState<BookSummary | null>(null)
+
+  const refreshSummary = useCallback(async () => {
+    const s = await window.api.summary()
+    setSummary(s)
+  }, [])
 
   const refreshTree = useCallback(async () => {
     const t = await window.api.listTree()
     setTree(t)
-  }, [])
+    refreshSummary()
+  }, [refreshSummary])
 
   useEffect(() => {
     refreshTree()
@@ -35,19 +44,31 @@ export default function App() {
     await window.api.writeFile(currentPath, content)
     setSavedContent(content)
     setStatus(`saved ${currentPath}`)
-  }, [currentPath, content])
+    refreshSummary()
+  }, [currentPath, content, refreshSummary])
 
   const commitPush = useCallback(async () => {
     if (content !== savedContent && currentPath) {
       await window.api.writeFile(currentPath, content)
       setSavedContent(content)
     }
-    const msg = window.prompt('Commit message:', 'chore: edits from book editor')
-    if (!msg) return
+    setStatus('asking claude for a commit message…')
+    const suggestion = await window.api.suggestCommitMessage()
+    const fallback = 'chore: edits from book editor'
+    const defaultMsg = suggestion.ok ? suggestion.message : fallback
+    if (!suggestion.ok) {
+      setStatus(`claude unavailable (${suggestion.error}) — using fallback`)
+    }
+    const msg = window.prompt('Commit message:', defaultMsg)
+    if (!msg) {
+      setStatus('commit cancelled')
+      return
+    }
     setStatus('committing…')
     const res = await window.api.gitCommitPush(msg)
     setStatus(res.ok ? 'pushed ✓' : `push failed: ${res.error}`)
-  }, [content, savedContent, currentPath])
+    refreshSummary()
+  }, [content, savedContent, currentPath, refreshSummary])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -70,6 +91,7 @@ export default function App() {
         onOpen={openFile}
         onRefresh={refreshTree}
         bookRoot={bookRoot}
+        summary={summary}
       />
       <div className="main">
         <div className="toolbar">
@@ -78,6 +100,9 @@ export default function App() {
             {dirty && <span className="dirty"> •</span>}
           </span>
           <div className="actions">
+            <button onClick={() => setShowPreview((v) => !v)}>
+              {showPreview ? 'Hide preview' : 'Show preview'}
+            </button>
             <button onClick={save} disabled={!currentPath || !dirty}>
               Save
             </button>
@@ -86,7 +111,10 @@ export default function App() {
             </button>
           </div>
         </div>
-        <Editor value={content} onChange={setContent} />
+        <div className={showPreview ? 'split split-2' : 'split split-1'}>
+          <Editor value={content} onChange={setContent} />
+          {showPreview && <Preview source={content} />}
+        </div>
         <StatusBar content={content} status={status} dirty={dirty} />
       </div>
     </div>

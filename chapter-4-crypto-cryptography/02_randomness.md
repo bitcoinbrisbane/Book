@@ -23,7 +23,7 @@ The Mersenne Twister is one of the most widely used pseudo-random number generat
 
 The core algorithm maintains an array of 624 32-bit integers as its internal state. Here's simplified pseudocode for the generation step:
 
-```text
+```javascript
 // Initialize state array MT[0..623] with seed
 // index keeps track of position in state array
 

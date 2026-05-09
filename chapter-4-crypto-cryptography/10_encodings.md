@@ -8,7 +8,7 @@ Hexadecimal uses 16 characters: `0-9` and `a-f`. Each hex character represents 4
 
 **Example:**
 
-```
+```text
 Binary: 11111111
 Hex: ff
 Decimal: 255
