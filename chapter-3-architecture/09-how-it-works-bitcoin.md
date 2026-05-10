@@ -94,4 +94,4 @@ The receiving peer runs the same validation and the cycle repeats. That feedback
 
 To make the pipeline concrete, the repo ships a minimal C# console app that exercises the same five steps against real mainnet peers: DNS-seed discovery, version/verack handshake, `getheaders` from genesis, PoW + merkle verification, and SQLite persistence. The mempool is a `List<Transaction>` — exactly as we said it could be.
 
-See [`code/csharp_bitcoin_node/`](../code/csharp_bitcoin_node/) — `dotnet run` is enough to watch a node bootstrap itself.
+The next five pages walk through it layer-by-layer with code snippets, starting from [Toy Node — Overview](./11-toy-node-overview.md). The code itself lives in [`code/csharp_bitcoin_node/`](../code/csharp_bitcoin_node/) — `dotnet run` is enough to watch a node bootstrap itself.

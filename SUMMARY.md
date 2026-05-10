@@ -26,6 +26,11 @@
 * [CAP Theorem](chapter-3-architecture/08-cap-theorem.md)
 * [How It Works: Bitcoin](chapter-3-architecture/09-how-it-works-bitcoin.md)
 * [How It Works: Ethereum](chapter-3-architecture/10-how-it-works-ethereum.md)
+* [Toy Node — Overview](chapter-3-architecture/11-toy-node-overview.md)
+* [Toy Node — Discovery](chapter-3-architecture/12-toy-node-discovery.md)
+* [Toy Node — Communications](chapter-3-architecture/13-toy-node-communications.md)
+* [Toy Node — Persistence](chapter-3-architecture/14-toy-node-persistence.md)
+* [Toy Node — Validation & IBD](chapter-3-architecture/15-toy-node-validation-ibd.md)
 
 ## Chapter 4: Crypto & Cryptography
 
