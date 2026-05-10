@@ -10,8 +10,10 @@ Requires .NET 10 SDK and an outbound TCP connection (mainnet peers listen on por
 
 ```bash
 cd code/csharp_bitcoin_node
-dotnet run                # default: download first 1000 blocks
-dotnet run -- 10000       # or pass an explicit cap
+dotnet run                  # default: download first 1000 blocks
+dotnet run -- 10000         # or pass an explicit cap
+dotnet run -- view 1        # pretty-print a stored block by height
+dotnet run -- view <hash>   # …or by big-endian display hash
 ```
 
 The cap is a safety net so you don't accidentally start a full-history sync. There is nothing stopping you from passing `2147483647` and walking the chain to tip — but at one block per round-trip it'll take a very long time, and recent blocks are ~1–2 MiB each so the SQLite file grows quickly.

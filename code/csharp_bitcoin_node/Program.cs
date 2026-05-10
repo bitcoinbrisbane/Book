@@ -12,6 +12,12 @@ public class Program
 
     public static async Task Main(string[] args)
     {
+        if (args.Length > 0 && args[0] == "view")
+        {
+            RunViewCommand(args.Skip(1).ToArray());
+            return;
+        }
+
         int maxBlocks = args.Length > 0 && int.TryParse(args[0], out var n) ? n : 1000;
         var ct = CancellationToken.None;
 
@@ -166,6 +172,68 @@ public class Program
         Log($"    {valid}/{headers.Count} blocks valid in {sw.Elapsed.TotalSeconds:F1}s ({valid / Math.Max(0.001, sw.Elapsed.TotalSeconds):F1} blk/s avg)");
         Log($"    {totalTxs:N0} transactions ({maxTxsInBlock:N0} tx max in a single block)");
         Log($"    {FormatBytes(totalBytes)} persisted to node.db");
+    }
+
+    // --- view subcommand ---
+
+    private static void RunViewCommand(string[] args)
+    {
+        if (args.Length == 0)
+        {
+            Console.WriteLine("usage: dotnet run -- view <height|hash>");
+            return;
+        }
+
+        using IBlockStore store = new SqliteBlockStore("node.db");
+        StoredBlock? blk;
+
+        if (int.TryParse(args[0], out var height))
+        {
+            blk = store.GetByHeight(height);
+        }
+        else
+        {
+            var hashLE = TryParseDisplayHash(args[0]);
+            if (hashLE == null) { Console.WriteLine("not a valid height or hash"); return; }
+            blk = store.GetByHash(hashLE);
+        }
+
+        if (blk == null) { Console.WriteLine($"no block found for '{args[0]}'"); return; }
+        PrintBlock(blk);
+    }
+
+    private static byte[]? TryParseDisplayHash(string s)
+    {
+        if (s.Length != 64) return null;
+        try
+        {
+            var be = Convert.FromHexString(s);
+            Array.Reverse(be);
+            return be;
+        }
+        catch { return null; }
+    }
+
+    private static void PrintBlock(StoredBlock b)
+    {
+        var ts = DateTimeOffset.FromUnixTimeSeconds(b.Header.Timestamp).UtcDateTime;
+        Console.WriteLine($"Block {b.Height}");
+        Console.WriteLine($"  hash       {Crypto.ToHexBigEndian(b.Header.Hash)}");
+        Console.WriteLine($"  prev       {Crypto.ToHexBigEndian(b.Header.PrevBlock)}");
+        Console.WriteLine($"  merkle     {Crypto.ToHexBigEndian(b.Header.MerkleRoot)}");
+        Console.WriteLine($"  version    0x{b.Header.Version:x8}");
+        Console.WriteLine($"  timestamp  {b.Header.Timestamp}  ({ts:yyyy-MM-dd HH:mm:ss} UTC)");
+        Console.WriteLine($"  bits       0x{b.Header.Bits:x8}");
+        Console.WriteLine($"  nonce      {b.Header.Nonce}");
+        Console.WriteLine($"  size       {b.Size:N0} B");
+        Console.WriteLine();
+        Console.WriteLine($"Transactions ({b.TxCount}):");
+        for (int i = 0; i < b.Transactions.Count; i++)
+        {
+            var t = b.Transactions[i];
+            var label = i == 0 ? "coinbase" : "";
+            Console.WriteLine($"  [{i,4}] {Crypto.ToHexBigEndian(t.Txid)}  {t.Size,5} B  {label}");
+        }
     }
 
     // --- Console helpers: a single mutable status line with checkpoint logging ---

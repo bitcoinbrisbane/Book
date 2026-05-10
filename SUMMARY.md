@@ -31,6 +31,7 @@
 * [Toy Node — Communications](chapter-3-architecture/13-toy-node-communications.md)
 * [Toy Node — Persistence](chapter-3-architecture/14-toy-node-persistence.md)
 * [Toy Node — Validation & IBD](chapter-3-architecture/15-toy-node-validation-ibd.md)
+* [Toy Node — Viewing Blocks](chapter-3-architecture/16-toy-node-viewing-blocks.md)
 
 ## Chapter 4: Crypto & Cryptography
 

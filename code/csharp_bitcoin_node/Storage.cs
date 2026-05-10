@@ -6,7 +6,18 @@ public interface IBlockStore : IDisposable
 {
     void InsertHeader(BlockHeader header, int height);
     void InsertBlock(Block block, int totalSize);
+    StoredBlock? GetByHeight(int height);
+    StoredBlock? GetByHash(byte[] hashLE);
 }
+
+public sealed record StoredBlock(
+    int Height,
+    BlockHeader Header,
+    int TxCount,
+    int Size,
+    IReadOnlyList<StoredTx> Transactions);
+
+public sealed record StoredTx(byte[] Txid, int Size);
 
 public sealed class SqliteBlockStore : IBlockStore
 {
@@ -92,6 +103,49 @@ public sealed class SqliteBlockStore : IBlockStore
             cmd.ExecuteNonQuery();
         }
         tx.Commit();
+    }
+
+    public StoredBlock? GetByHeight(int height)
+    {
+        using var cmd = _conn.CreateCommand();
+        cmd.CommandText = "SELECT hash FROM headers WHERE height = @h LIMIT 1;";
+        cmd.Parameters.AddWithValue("@h", height);
+        return cmd.ExecuteScalar() is byte[] hash ? GetByHash(hash) : null;
+    }
+
+    public StoredBlock? GetByHash(byte[] hashLE)
+    {
+        int height;
+        BlockHeader header;
+        using (var hdrCmd = _conn.CreateCommand())
+        {
+            hdrCmd.CommandText = "SELECT height, raw FROM headers WHERE hash = @h LIMIT 1;";
+            hdrCmd.Parameters.AddWithValue("@h", hashLE);
+            using var r = hdrCmd.ExecuteReader();
+            if (!r.Read()) return null;
+            height = r.GetInt32(0);
+            header = BlockHeader.Parse((byte[])r.GetValue(1));
+        }
+
+        int txCount = 0, size = 0;
+        using (var blockCmd = _conn.CreateCommand())
+        {
+            blockCmd.CommandText = "SELECT tx_count, size FROM blocks WHERE hash = @h LIMIT 1;";
+            blockCmd.Parameters.AddWithValue("@h", hashLE);
+            using var r = blockCmd.ExecuteReader();
+            if (r.Read()) { txCount = r.GetInt32(0); size = r.GetInt32(1); }
+        }
+
+        var txs = new List<StoredTx>();
+        using (var txCmd = _conn.CreateCommand())
+        {
+            txCmd.CommandText = "SELECT txid, size FROM transactions WHERE block_hash = @h ORDER BY rowid;";
+            txCmd.Parameters.AddWithValue("@h", hashLE);
+            using var r = txCmd.ExecuteReader();
+            while (r.Read()) txs.Add(new StoredTx((byte[])r.GetValue(0), r.GetInt32(1)));
+        }
+
+        return new StoredBlock(height, header, txCount, size, txs);
     }
 
     public void Dispose() => _conn.Dispose();
