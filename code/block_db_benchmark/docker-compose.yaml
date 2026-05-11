@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:16.3-bookworm
+    container_name: blockbench-postgres
+    environment:
+      POSTGRES_DB: blocks_bench
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: Test1234
+    ports:
+      - "5433:5432"
+    tmpfs:
+      - /var/run/postgresql
+
+  mongo:
+    image: mongo:7.0
+    container_name: blockbench-mongo
+    environment:
+      MONGO_INITDB_DATABASE: blocks_bench
+    ports:
+      - "27017:27017"

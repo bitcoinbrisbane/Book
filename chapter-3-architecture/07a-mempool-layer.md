@@ -1,8 +1,8 @@
 ## Mempool layer
 
-When a transaction is broadcast, it spends some time *in flight* — signed by the user but not yet confirmed in a block. That window is seconds, minutes, or in a fee-market spike, hours. The mempool is where each node keeps the unconfirmed transactions it has seen. It's not consensus state — peers can and do hold different mempool views — but it is critical infrastructure: it's how miners pick the next block, how wallets show "pending" balances, and how fee estimation actually works.
+When a transaction is broadcast, it spends some time *in flight*, signed by the user but not yet confirmed in a block. That window is seconds, minutes, or in a fee-market spike, hours. The mempool is where each node keeps the unconfirmed transactions it has seen. It's not consensus state — peers can and do hold different mempool views — but it is critical infrastructure: it's how miners pick the next block, how wallets show "pending" balances, and how fee estimation actually works.
 
-We mentioned the mempool in earlier layer pages and again in the transaction-flow walkthroughs for Bitcoin and Ethereum. This page makes it its own layer, because the interesting design question isn't *that* a node stores unconfirmed transactions — it's *which* ones it agrees to store.
+We mentioned the mempool in earlier layer pages and again in the transaction-flow walkthroughs for Bitcoin and Ethereum. This page makes it its own layer, because the interesting design question isn't *that* a node stores unconfirmed transactions it's *which* ones it agrees to store.
 
 ## Policy vs consensus
 
