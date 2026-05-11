@@ -23,6 +23,7 @@
 * [Discovery Layer](chapter-3-architecture/05-discovery-layer.md)
 * [Communications Layer](chapter-3-architecture/06-communications-layer.md)
 * [Persistence Layer](chapter-3-architecture/07-persistence-layer.md)
+* [Mempool Layer](chapter-3-architecture/07a-mempool-layer.md)
 * [CAP Theorem](chapter-3-architecture/08-cap-theorem.md)
 * [How It Works: Bitcoin](chapter-3-architecture/09-how-it-works-bitcoin.md)
 * [How It Works: Ethereum](chapter-3-architecture/10-how-it-works-ethereum.md)
