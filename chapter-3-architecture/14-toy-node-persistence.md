@@ -1,6 +1,6 @@
 ## Toy node — Persistence
 
-Once a block is validated, somewhere has to store it. We promised earlier in this chapter to compare three databases and that "all databases use files to store data." For the toy node we picked SQLite — embedded, no daemon, no setup, file-on-disk. It's not what Bitcoin Core uses (LevelDB for the chainstate, flat files for blocks), but it's perfect for a teaching example.
+Once a block is validated, somewhere has to store it. We promised earlier in this chapter to compare four databases and that "all databases use files to store data." For the toy node we picked SQLite — embedded, no daemon, no setup, file-on-disk. It's not what Bitcoin Core uses (LevelDB for the chainstate, flat files for blocks), but it's perfect for a teaching example.
 
 The whole layer is in `Storage.cs`.
 
