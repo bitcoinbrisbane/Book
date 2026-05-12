@@ -12,6 +12,8 @@ type Backend interface {
 	Name() string
 	Setup(ctx context.Context) error
 	InsertAll(ctx context.Context, blocks []Block) error
+	GetByHash(ctx context.Context, hash [32]byte) (*Block, error)
+	GetByHeight(ctx context.Context, height uint32) (*Block, error)
 	DiskSize(ctx context.Context) (int64, error)
 	Close() error
 }

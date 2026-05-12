@@ -74,6 +74,46 @@ func (b *PostgresBackend) InsertAll(ctx context.Context, blocks []Block) error {
 	return tx.Commit(ctx)
 }
 
+func (b *PostgresBackend) GetByHash(ctx context.Context, hash [32]byte) (*Block, error) {
+	return b.scanOne(ctx,
+		`SELECT hash, height, prev, merkle, timestamp, bits, nonce, version, tx_count, size, raw
+		 FROM headers WHERE hash = $1`,
+		hash[:])
+}
+
+func (b *PostgresBackend) GetByHeight(ctx context.Context, height uint32) (*Block, error) {
+	return b.scanOne(ctx,
+		`SELECT hash, height, prev, merkle, timestamp, bits, nonce, version, tx_count, size, raw
+		 FROM headers WHERE height = $1`,
+		int32(height))
+}
+
+func (b *PostgresBackend) scanOne(ctx context.Context, query string, arg any) (*Block, error) {
+	var (
+		blk                            Block
+		hash, prev, merkle, raw        []byte
+		height, version, txCount, size int32
+		ts, bits, nonce                int64
+	)
+	if err := b.pool.QueryRow(ctx, query, arg).Scan(
+		&hash, &height, &prev, &merkle, &ts, &bits, &nonce, &version, &txCount, &size, &raw,
+	); err != nil {
+		return nil, err
+	}
+	copy(blk.Hash[:], hash)
+	blk.Height = uint32(height)
+	copy(blk.Prev[:], prev)
+	copy(blk.Merkle[:], merkle)
+	blk.Timestamp = uint32(ts)
+	blk.Bits = uint32(bits)
+	blk.Nonce = uint32(nonce)
+	blk.Version = version
+	blk.TxCount = uint16(txCount)
+	blk.Size = uint32(size)
+	copy(blk.Raw[:], raw)
+	return &blk, nil
+}
+
 func (b *PostgresBackend) DiskSize(ctx context.Context) (int64, error) {
 	var size int64
 	err := b.pool.QueryRow(ctx,

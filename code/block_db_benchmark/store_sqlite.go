@@ -77,6 +77,45 @@ func (b *SqliteBackend) InsertAll(ctx context.Context, blocks []Block) error {
 	return tx.Commit()
 }
 
+func (b *SqliteBackend) GetByHash(ctx context.Context, hash [32]byte) (*Block, error) {
+	return b.scanOne(ctx,
+		`SELECT hash, height, prev, merkle, timestamp, bits, nonce, version, tx_count, size, raw
+		 FROM headers WHERE hash = ?`,
+		hash[:])
+}
+
+func (b *SqliteBackend) GetByHeight(ctx context.Context, height uint32) (*Block, error) {
+	return b.scanOne(ctx,
+		`SELECT hash, height, prev, merkle, timestamp, bits, nonce, version, tx_count, size, raw
+		 FROM headers WHERE height = ?`,
+		int64(height))
+}
+
+func (b *SqliteBackend) scanOne(ctx context.Context, query string, arg any) (*Block, error) {
+	var (
+		blk                      Block
+		hash, prev, merkle, raw  []byte
+		height, ts, bits, nonce  int64
+		version, txCount, sizeFn int64
+	)
+	row := b.db.QueryRowContext(ctx, query, arg)
+	if err := row.Scan(&hash, &height, &prev, &merkle, &ts, &bits, &nonce, &version, &txCount, &sizeFn, &raw); err != nil {
+		return nil, err
+	}
+	copy(blk.Hash[:], hash)
+	blk.Height = uint32(height)
+	copy(blk.Prev[:], prev)
+	copy(blk.Merkle[:], merkle)
+	blk.Timestamp = uint32(ts)
+	blk.Bits = uint32(bits)
+	blk.Nonce = uint32(nonce)
+	blk.Version = int32(version)
+	blk.TxCount = uint16(txCount)
+	blk.Size = uint32(sizeFn)
+	copy(blk.Raw[:], raw)
+	return &blk, nil
+}
+
 func (b *SqliteBackend) DiskSize(ctx context.Context) (int64, error) {
 	info, err := os.Stat(b.path)
 	if err != nil {

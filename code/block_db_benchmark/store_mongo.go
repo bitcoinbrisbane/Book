@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -69,6 +70,66 @@ func (b *MongoBackend) InsertAll(ctx context.Context, blocks []Block) error {
 		}
 	}
 	return nil
+}
+
+func (b *MongoBackend) GetByHash(ctx context.Context, hash [32]byte) (*Block, error) {
+	return b.findOne(ctx, bson.M{"_id": hash[:]})
+}
+
+func (b *MongoBackend) GetByHeight(ctx context.Context, height uint32) (*Block, error) {
+	return b.findOne(ctx, bson.M{"height": int64(height)})
+}
+
+func (b *MongoBackend) findOne(ctx context.Context, filter bson.M) (*Block, error) {
+	var doc bson.M
+	if err := b.coll.FindOne(ctx, filter).Decode(&doc); err != nil {
+		return nil, err
+	}
+	var blk Block
+	if v, ok := doc["_id"].(primitive.Binary); ok {
+		copy(blk.Hash[:], v.Data)
+	}
+	blk.Height = bsonAsUint32(doc["height"])
+	if v, ok := doc["prev"].(primitive.Binary); ok {
+		copy(blk.Prev[:], v.Data)
+	}
+	if v, ok := doc["merkle"].(primitive.Binary); ok {
+		copy(blk.Merkle[:], v.Data)
+	}
+	blk.Timestamp = bsonAsUint32(doc["timestamp"])
+	blk.Bits = bsonAsUint32(doc["bits"])
+	blk.Nonce = bsonAsUint32(doc["nonce"])
+	blk.Version = int32(bsonAsInt64(doc["version"]))
+	blk.TxCount = uint16(bsonAsUint32(doc["tx_count"]))
+	blk.Size = bsonAsUint32(doc["size"])
+	if v, ok := doc["raw"].(primitive.Binary); ok {
+		copy(blk.Raw[:], v.Data)
+	}
+	return &blk, nil
+}
+
+func bsonAsUint32(v interface{}) uint32 {
+	switch n := v.(type) {
+	case int32:
+		return uint32(n)
+	case int64:
+		return uint32(n)
+	case float64:
+		return uint32(n)
+	}
+	return 0
+}
+
+func bsonAsInt64(v interface{}) int64 {
+	switch n := v.(type) {
+	case int32:
+		return int64(n)
+	case int64:
+		return n
+	case float64:
+		return int64(n)
+	}
+	return 0
 }
 
 func (b *MongoBackend) DiskSize(ctx context.Context) (int64, error) {
