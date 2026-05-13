@@ -44,9 +44,9 @@ These omissions are spelled out again in the code's `README.md` and at the end o
 
 The next pages mirror the layer pages from earlier in this chapter:
 
-1. [Toy node — Discovery](./12-toy-node-discovery.md)
-2. [Toy node — Communications](./13-toy-node-communications.md)
-3. [Toy node — Persistence](./14-toy-node-persistence.md)
-4. [Toy node — Validation & IBD](./15-toy-node-validation-ibd.md)
+1. [Toy node — Discovery](./12_toy-node-discovery.md)
+2. [Toy node — Communications](./13_toy-node-communications.md)
+3. [Toy node — Persistence](./14_toy-node-persistence.md)
+4. [Toy node — Validation & IBD](./15_toy-node-validation-ibd.md)
 
 Each is self-contained and shows the actual code as it lives in the repo. If you want to follow along, keep `code/csharp_bitcoin_node/` open in your editor.
