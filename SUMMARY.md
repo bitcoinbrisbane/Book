@@ -48,9 +48,33 @@
 * [Base64, Hex and Other Encodings](chapter-4-crypto-cryptography/10_encodings.md)
 * [Zero Knowledge Proofs](chapter-4-crypto-cryptography/11_zero-knowledge-proofs.md)
 
+## Chapter 5: Anti-Patterns
+
+* [Email and Messaging on Chain](chapter-5-anti-patterns/01_email-on-chain.md)
+
+## Chapter 6: Ethereum Smart Contracts
+
+* [Introduction](chapter-6-ethereum-smart-contracts/01_introduction.md)
+* [Ethereum Improvement Proposals](chapter-6-ethereum-smart-contracts/02_eips.md)
+* [The ERC20 Standard](chapter-6-ethereum-smart-contracts/03_erc20.md)
+* [Other Notable EIPs](chapter-6-ethereum-smart-contracts/04_other-eips.md)
+* [ERC777](chapter-6-ethereum-smart-contracts/05_erc777.md)
+* [ERC721 — NFTs](chapter-6-ethereum-smart-contracts/06_erc721.md)
+* [Time-bound NFTs](chapter-6-ethereum-smart-contracts/07_time-bound-nfts.md)
+* [DeFi — Decentralised Finance](chapter-6-ethereum-smart-contracts/08_defi.md)
+* [Uniswap v3](chapter-6-ethereum-smart-contracts/08a_uniswap-v3.md)
+
 ## Chapter 7: Consensus
 
 * [What is Consensus and Why Does it Matter?](chapter-7-consensus/01_what-and-why.md)
+* [Proof of Work](chapter-7-consensus/02_proof-of-work.md)
+* [Proof of Stake](chapter-7-consensus/03_proof-of-stake.md)
+* [Our Consensus](chapter-7-consensus/04_our-consensus.md)
+* [Staking and Slashing](chapter-7-consensus/05_staking-and-slashing.md)
+* [Deposit and Mint](chapter-7-consensus/06_deposit-and-mint.md)
+* [Bridging](chapter-7-consensus/07_bridging.md)
+* [Validator Selection](chapter-7-consensus/08_validator-selection.md)
+* [Other Consensus Mechanisms](chapter-7-consensus/09_other-mechanisms.md)
 
 ## Chapter 8: CardLang
 

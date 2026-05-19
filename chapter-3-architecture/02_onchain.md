@@ -1,6 +1,6 @@
 ## What's On-Chain, What's Off-Chain?
 
-In our introduction in Chapter 2, we briefly discussed how blockchains manage state through consensus mechanisms. An important architectural decision when building blockchain applications is determining which data and logic should live on-chain versus off-chain.
+In our introduction in Chapter 2, we briefly discussed how blockchains manage state through consensus mechanisms. An important architectural decision when building our blockchain application is determining which data and logic should live on-chain versus off-chain.  We can summerise the requirements as follows;
 
 **On-chain** data and logic is:
 - Validated by all nodes in the network
