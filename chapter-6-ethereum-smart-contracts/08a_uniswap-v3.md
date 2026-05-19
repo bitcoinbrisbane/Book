@@ -37,7 +37,7 @@ The split lets the Uniswap team iterate on UX (better routing, MEV protection, g
 
 ## The MasterChef pattern
 
-Another novel piece of the Uniswap ecosystem is the **MasterChef** contract. Deployed by SushiSwap (a Uniswap v2 fork) in 2020, it manages a pool of users who **stake their LP tokens** and earn additional rewards — typically a governance token like `SUSHI` — in return for keeping their liquidity locked.
+Another novel piece of the Uniswap ecosystem is the **MasterChef** contract. Deployed by SushiSwap (a Uniswap v2 fork) in 2020, it manages a pool of users who **stake their LP tokens** and earn additional rewards typically a governance token like `SUSHI` — in return for keeping their liquidity locked.
 
 The mechanic is simple in shape, dangerous in detail:
 
