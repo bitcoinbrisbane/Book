@@ -99,6 +99,162 @@ function runClaudeForCommitMessage(diff: string): Promise<string> {
   })
 }
 
+function runGhCreatePr(opts: {
+  baseBranch: string
+  branch: string
+  title: string
+  body: string
+}): Promise<string> {
+  return new Promise((resolveP, rejectP) => {
+    const proc = spawn(
+      'gh',
+      [
+        'pr',
+        'create',
+        '--base',
+        opts.baseBranch,
+        '--head',
+        opts.branch,
+        '--title',
+        opts.title,
+        '--body',
+        opts.body
+      ],
+      { cwd: BOOK_ROOT, stdio: ['ignore', 'pipe', 'pipe'] }
+    )
+    let stdout = ''
+    let stderr = ''
+    proc.stdout.on('data', (d) => (stdout += d.toString()))
+    proc.stderr.on('data', (d) => (stderr += d.toString()))
+    proc.on('error', (err) => {
+      const msg =
+        (err as NodeJS.ErrnoException).code === 'ENOENT'
+          ? 'gh CLI not found — install it from https://cli.github.com/'
+          : err.message
+      rejectP(new Error(msg))
+    })
+    proc.on('close', (code) => {
+      if (code !== 0) return rejectP(new Error(stderr.trim() || `gh exited ${code}`))
+      const url = stdout
+        .trim()
+        .split('\n')
+        .find((l) => l.startsWith('http'))
+      resolveP(url || stdout.trim())
+    })
+  })
+}
+
+function slugForBranch(s: string): string {
+  return (
+    s
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 40) || 'edit'
+  )
+}
+
+async function runSuggestChange(args: {
+  filePath: string
+  before: string
+  after: string
+  comment: string
+}): Promise<{ ok: true; prUrl: string; branch: string } | { ok: false; error: string }> {
+  const { filePath, before, after, comment } = args
+
+  if (!filePath) return { ok: false, error: 'no file path' }
+  if (!before) return { ok: false, error: 'no selection' }
+  if (before === after) return { ok: false, error: 'replacement matches the original' }
+  if (!comment.trim()) return { ok: false, error: 'comment is required' }
+
+  let abs: string
+  try {
+    abs = safeResolve(filePath)
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) }
+  }
+
+  let original: string
+  try {
+    original = await readFile(abs, 'utf8')
+  } catch (err) {
+    return { ok: false, error: `cannot read ${filePath}: ${(err as Error).message}` }
+  }
+
+  const occurrences = original.split(before).length - 1
+  if (occurrences === 0)
+    return { ok: false, error: 'selected text not found in file on disk — save first?' }
+  if (occurrences > 1)
+    return {
+      ok: false,
+      error: 'selected text appears multiple times in the file — widen your selection'
+    }
+
+  const status = await git.status()
+  const baseBranch = status.current ?? 'master'
+  const dirty =
+    status.modified.length + status.not_added.length + status.staged.length > 0
+
+  let stashed = false
+  let branchCreated = false
+  const firstLine = comment.split('\n')[0].trim()
+  const branch = `suggest/${new Date().toISOString().replace(/[-:T]/g, '').slice(0, 12)}-${slugForBranch(firstLine)}`
+
+  try {
+    if (dirty) {
+      await git.stash(['push', '--include-untracked', '-m', `book-editor-suggest-${branch}`])
+      stashed = true
+    }
+
+    await git.checkoutBranch(branch, baseBranch)
+    branchCreated = true
+
+    const updated = original.replace(before, after)
+    await writeFile(abs, updated, 'utf8')
+    await git.add(filePath)
+    await git.commit(firstLine || 'suggestion from book editor')
+    await git.push('origin', branch, ['--set-upstream'])
+
+    const prUrl = await runGhCreatePr({
+      baseBranch,
+      branch,
+      title: firstLine || 'Suggestion from book editor',
+      body: comment
+    })
+
+    await git.checkout(baseBranch)
+    if (stashed) {
+      await git.stash(['pop'])
+      stashed = false
+    }
+
+    return { ok: true, prUrl, branch }
+  } catch (err) {
+    // Best-effort recovery
+    try {
+      const cur = (await git.status()).current
+      if (cur && cur !== baseBranch) await git.checkout(baseBranch)
+    } catch {
+      // ignore
+    }
+    if (stashed) {
+      try {
+        await git.stash(['pop'])
+      } catch {
+        // ignore
+      }
+    }
+    if (branchCreated) {
+      try {
+        await git.deleteLocalBranch(branch, true)
+      } catch {
+        // ignore
+      }
+    }
+    return { ok: false, error: err instanceof Error ? err.message : String(err) }
+  }
+}
+
 function registerHandlers() {
   ipcMain.handle('book:listTree', () => listTree())
 
@@ -169,6 +325,15 @@ function registerHandlers() {
     } catch (err) {
       return { ok: false, error: err instanceof Error ? err.message : String(err) }
     }
+  })
+
+  ipcMain.handle('book:suggestChange', async (_e, args: {
+    filePath: string
+    before: string
+    after: string
+    comment: string
+  }) => {
+    return runSuggestChange(args)
   })
 
   ipcMain.handle('book:gitCommitPush', async (_e, message: string) => {

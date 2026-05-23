@@ -34,6 +34,14 @@ export const api = {
   suggestCommitMessage: (): Promise<
     { ok: true; message: string } | { ok: false; error: string }
   > => ipcRenderer.invoke('book:suggestCommitMessage'),
+  suggestChange: (args: {
+    filePath: string
+    before: string
+    after: string
+    comment: string
+  }): Promise<
+    { ok: true; prUrl: string; branch: string } | { ok: false; error: string }
+  > => ipcRenderer.invoke('book:suggestChange', args),
   root: (): Promise<string> => ipcRenderer.invoke('book:root')
 }
 

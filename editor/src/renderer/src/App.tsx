@@ -4,6 +4,7 @@ import Sidebar from './components/Sidebar'
 import Editor from './components/Editor'
 import Preview from './components/Preview'
 import StatusBar from './components/StatusBar'
+import SuggestModal from './components/SuggestModal'
 
 export default function App() {
   const [tree, setTree] = useState<TreeNode[]>([])
@@ -14,6 +15,8 @@ export default function App() {
   const [status, setStatus] = useState('')
   const [showPreview, setShowPreview] = useState(true)
   const [summary, setSummary] = useState<BookSummary | null>(null)
+  const [selection, setSelection] = useState('')
+  const [showSuggest, setShowSuggest] = useState(false)
 
   const refreshSummary = useCallback(async () => {
     const s = await window.api.summary()
@@ -82,6 +85,7 @@ export default function App() {
   }, [save])
 
   const dirty = content !== savedContent
+  const canSuggest = !!currentPath && !dirty && selection.trim().length > 0
 
   return (
     <div className="app">
@@ -106,17 +110,42 @@ export default function App() {
             <button onClick={save} disabled={!currentPath || !dirty}>
               Save
             </button>
+            <button
+              onClick={() => setShowSuggest(true)}
+              disabled={!canSuggest}
+              title={
+                !currentPath
+                  ? 'Open a file first'
+                  : dirty
+                    ? 'Save your changes first'
+                    : !selection.trim()
+                      ? 'Select some text in the editor first'
+                      : 'Open a PR with this change suggested'
+              }
+            >
+              Suggest change
+            </button>
             <button onClick={commitPush} disabled={!currentPath}>
               Commit &amp; push
             </button>
           </div>
         </div>
         <div className={showPreview ? 'split split-2' : 'split split-1'}>
-          <Editor value={content} onChange={setContent} />
+          <Editor value={content} onChange={setContent} onSelectionChange={setSelection} />
           {showPreview && <Preview source={content} />}
         </div>
         <StatusBar content={content} status={status} dirty={dirty} />
       </div>
+      {showSuggest && currentPath && (
+        <SuggestModal
+          filePath={currentPath}
+          selection={selection}
+          onClose={() => {
+            setShowSuggest(false)
+            refreshSummary()
+          }}
+        />
+      )}
     </div>
   )
 }

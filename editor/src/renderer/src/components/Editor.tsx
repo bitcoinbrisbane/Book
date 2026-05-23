@@ -8,13 +8,16 @@ import { syntaxHighlighting, defaultHighlightStyle } from '@codemirror/language'
 type Props = {
   value: string
   onChange: (v: string) => void
+  onSelectionChange?: (text: string) => void
 }
 
-export default function Editor({ value, onChange }: Props) {
+export default function Editor({ value, onChange, onSelectionChange }: Props) {
   const host = useRef<HTMLDivElement>(null)
   const view = useRef<EditorView | null>(null)
   const onChangeRef = useRef(onChange)
   onChangeRef.current = onChange
+  const onSelectionRef = useRef(onSelectionChange)
+  onSelectionRef.current = onSelectionChange
 
   useEffect(() => {
     if (!host.current) return
@@ -31,6 +34,11 @@ export default function Editor({ value, onChange }: Props) {
         EditorView.lineWrapping,
         EditorView.updateListener.of((u) => {
           if (u.docChanged) onChangeRef.current(u.state.doc.toString())
+          if (u.selectionSet || u.docChanged) {
+            const sel = u.state.selection.main
+            const text = u.state.doc.sliceString(sel.from, sel.to)
+            onSelectionRef.current?.(text)
+          }
         }),
         EditorView.theme({
           '&': { height: '100%', fontSize: '14px' },

@@ -313,3 +313,136 @@ html, body, #root {
   font-family: ui-monospace, Menlo, monospace;
   font-size: 11px;
 }
+
+/* Suggest-change modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal {
+  background: #252526;
+  border: 1px solid #3a3a3a;
+  border-radius: 6px;
+  width: min(720px, 92vw);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid #333;
+  font-weight: 600;
+  font-size: 13px;
+  color: #ddd;
+}
+
+.modal-body {
+  padding: 12px 14px 4px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.modal-row label {
+  font-size: 11px;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.modal-filepath {
+  color: #ccc;
+  background: #1e1e1e;
+  border: 1px solid #2f2f2f;
+  border-radius: 3px;
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.modal textarea {
+  background: #1e1e1e;
+  color: #e3e3e3;
+  border: 1px solid #2f2f2f;
+  border-radius: 3px;
+  padding: 8px 10px;
+  font: 13px ui-monospace, Menlo, monospace;
+  resize: vertical;
+  min-height: 90px;
+}
+
+.modal textarea:focus {
+  outline: 1px solid #0e639c;
+  border-color: #0e639c;
+}
+
+.modal textarea[readonly] {
+  color: #aaa;
+  background: #181818;
+}
+
+.modal-status {
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 3px;
+}
+
+.modal-status.busy {
+  background: #1f3a4a;
+  color: #aedcfb;
+}
+
+.modal-status.error {
+  background: #4a1f24;
+  color: #f4a8a8;
+}
+
+.modal-status.done {
+  background: #1f4a2c;
+  color: #a8f0b8;
+}
+
+.modal-status a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 10px 14px;
+  border-top: 1px solid #333;
+}
+
+.modal-footer button {
+  background: #0e639c;
+  color: #fff;
+  border: 0;
+  padding: 6px 14px;
+  border-radius: 3px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.modal-footer button:hover:not(:disabled) { background: #1177bb; }
+.modal-footer button:disabled { background: #555; cursor: default; opacity: 0.6; }
+.modal-footer button.secondary { background: #3a3a3a; }
+.modal-footer button.secondary:hover:not(:disabled) { background: #4a4a4a; }
