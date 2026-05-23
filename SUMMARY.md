@@ -63,6 +63,9 @@
 * [Time-bound NFTs](chapter-6-ethereum-smart-contracts/07_time-bound-nfts.md)
 * [DeFi — Decentralised Finance](chapter-6-ethereum-smart-contracts/08_defi.md)
 * [Uniswap v3](chapter-6-ethereum-smart-contracts/08a_uniswap-v3.md)
+* [Token Mechanics — approve and transferFrom](chapter-6-ethereum-smart-contracts/09_token-mechanics.md)
+* [call, send, and transfer](chapter-6-ethereum-smart-contracts/10_call-vs-transfer.md)
+* [Account Abstraction](chapter-6-ethereum-smart-contracts/11_account-abstraction.md)
 
 ## Chapter 7: Consensus
 
