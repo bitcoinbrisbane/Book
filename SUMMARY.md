@@ -89,6 +89,14 @@
 * [Game Specification](chapter-8-cardlang/09_game-specification.md)
 * [Implementation](chapter-8-cardlang/10_implementation.md)
 
+## Chapter 9: Writing a Compiler
+
+* [Introduction](chapter-9-writing-a-compiler/01_introduction.md)
+
+## Chapter 10: The Desktop Client
+
+* [Introduction](chapter-10-desktop-client/01_introduction.md)
+
 ## Additional Topics
 
 * [Bitcoin Block Structure](blockchain-block.md)
