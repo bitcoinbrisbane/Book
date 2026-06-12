@@ -4,7 +4,7 @@ Inserts 100,000 synthetic block-header records into four databases — SQLite, P
 
 ## Why this benchmark
 
-The persistence-layer page in Chapter 3 made a few claims about how different storage engines behave under blockchain-shaped workloads. This is the matching experiment.
+The persistence-layer page in Chapter 4 made a few claims about how different storage engines behave under blockchain-shaped workloads. This is the matching experiment.
 
 - **SQLite** — embedded, single file. Default in many small projects.
 - **PebbleDB** — embedded LSM-tree (Go), CockroachDB's replacement for RocksDB. Same shape as what Bitcoin Core uses for its chainstate.
@@ -118,4 +118,4 @@ rm -rf out/                  # clean SQLite + Pebble artifacts
 - **Crash recovery.** Pebble's `pebble.Sync` is honest about durability; SQLite uses default journal mode; nobody is power-cut tested.
 - **Long-tail growth.** 100k blocks fit comfortably in RAM/cache for every backend. Real blockchain workloads have hundreds of millions of rows where index height matters.
 
-So: useful for "how do these databases feel" and "is the order-of-magnitude difference what you'd expect", not for production capacity planning. The Chapter 3 persistence page explains what each engine is *good at* — this benchmark is the matching small empirical check.
+So: useful for "how do these databases feel" and "is the order-of-magnitude difference what you'd expect", not for production capacity planning. The Chapter 4 persistence page explains what each engine is *good at* — this benchmark is the matching small empirical check.

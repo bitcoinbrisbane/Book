@@ -1,6 +1,6 @@
-# Chapter 4: Crypto & Cryptography - Code Examples
+# Chapter 3: Crypto & Cryptography - Code Examples
 
-This directory contains all code examples for Chapter 4, organized by topic.
+This directory contains all code examples for Chapter 3, organized by topic.
 
 ## Documentation Statistics
 

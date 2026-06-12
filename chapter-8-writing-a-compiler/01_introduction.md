@@ -1,6 +1,6 @@
 ## Introduction
 
-A compiler turns one language into another. For our purposes, that means taking the rule-and-game definitions we expressed in CardLang (Chapter 8) and producing something a node can actually execute — bytecode, a contract, or an interpreter loop, depending on where the rules need to run.
+A compiler turns one language into another. For our purposes, that means taking the rule-and-game definitions we expressed in CardLang (Chapter 7) and producing something a node can actually execute — bytecode, a contract, or an interpreter loop, depending on where the rules need to run.
 
 This chapter walks through the parts of a compiler in the order you'd build one:
 

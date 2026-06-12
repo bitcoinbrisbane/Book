@@ -1,0 +1,16 @@
+{
+  "title": "Bitcoin Brisbane Book",
+  "description": "Build a decentralised poker blockchain, end to end.",
+  "structure": {
+    "readme": "README.md",
+    "summary": "SUMMARY.md"
+  },
+  "ignores": [
+    "code",
+    "editor",
+    "src",
+    "node_modules",
+    "_book",
+    "**/sample/**"
+  ]
+}
