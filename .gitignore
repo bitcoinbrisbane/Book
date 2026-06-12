@@ -402,3 +402,8 @@ FodyWeavers.xsd
 
 # SQLite outputs from the C# toy node example
 *.db
+
+# Honkit build tooling
+node_modules
+_book
+book.pdf

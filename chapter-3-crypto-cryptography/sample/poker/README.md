@@ -1,6 +1,6 @@
 # Poker Cryptography Examples
 
-This directory contains code examples demonstrating cryptographic concepts used in secure poker games from Chapter 4: Crypto & Cryptography.
+This directory contains code examples demonstrating cryptographic concepts used in secure poker games from Chapter 3: Crypto & Cryptography.
 
 ## Files
 

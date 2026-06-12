@@ -1,0 +1,14 @@
+{
+  "name": "bitcoin-brisbane-book",
+  "version": "0.1.0",
+  "description": "Build a decentralised poker blockchain, end to end.",
+  "private": true,
+  "scripts": {
+    "serve": "honkit serve",
+    "build": "honkit build",
+    "pdf": "honkit pdf . ./book.pdf"
+  },
+  "devDependencies": {
+    "honkit": "^6.0.0"
+  }
+}

@@ -1,4 +1,4 @@
-# Chapter 8: CardLang - Code Examples
+# Chapter 7: CardLang - Code Examples
 
 This directory contains Haskell implementations of the CardLang domain-specific language concepts.
 

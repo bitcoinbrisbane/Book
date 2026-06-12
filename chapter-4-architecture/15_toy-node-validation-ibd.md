@@ -260,6 +260,6 @@ We don't populate it during IBD — confirmed transactions inside a block are *n
 
 ## Wrapping up
 
-Across these five pages we've built every layer in `chapter-3-architecture`'s table of contents — discovery, communications, persistence, validation, mempool — against real Bitcoin mainnet. It cost ~800 lines of C#. That is, by some way, the smallest interesting Bitcoin client; it elides script execution, the UTXO set, mining, wallets, and consensus rule details. But the *shape* of every layer — what it consumes, what it produces, where the boundaries are — should now be concrete enough to recognise when you read Bitcoin Core, Geth, or Nethermind.
+Across these five pages we've built every layer in `chapter-4-architecture`'s table of contents — discovery, communications, persistence, validation, mempool — against real Bitcoin mainnet. It cost ~800 lines of C#. That is, by some way, the smallest interesting Bitcoin client; it elides script execution, the UTXO set, mining, wallets, and consensus rule details. But the *shape* of every layer — what it consumes, what it produces, where the boundaries are — should now be concrete enough to recognise when you read Bitcoin Core, Geth, or Nethermind.
 
 That recognition is the whole point of this chapter. Code that does this much in this little space is rare; it exists because Bitcoin's protocol is an unusually clean separation of concerns, where each layer's job is small enough to fit on one page.

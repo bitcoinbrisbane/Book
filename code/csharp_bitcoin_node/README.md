@@ -2,7 +2,7 @@
 
 A small, single-process console app that does a real handshake against a real mainnet peer, asks for the first batch of headers from the genesis block, validates each header's proof-of-work, downloads one block, verifies the merkle root, persists everything to SQLite, and stuffs the block's non-coinbase transactions into an in-memory mempool.
 
-This accompanies *Chapter 3 — Architecture* and is not a production node. It exists to illustrate the receive → validate → persist → mempool pipeline in ~600 lines of C#.
+This accompanies *Chapter 4 — Architecture* and is not a production node. It exists to illustrate the receive → validate → persist → mempool pipeline in ~600 lines of C#.
 
 ## Run
 
@@ -49,7 +49,7 @@ A `node.db` SQLite file is written next to the binary with three tables: `header
 
 ## What's wired up
 
-| Layer (Chapter 3)        | File                       | Notes                                                            |
+| Layer (Chapter 4)        | File                       | Notes                                                            |
 |--------------------------|----------------------------|------------------------------------------------------------------|
 | Discovery                | `Discovery.cs`             | Resolves Bitcoin Core's DNS seed hostnames                       |
 | Communications           | `Network.cs`               | TCP, magic + 24-byte header framing, version/verack handshake    |

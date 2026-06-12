@@ -1,6 +1,6 @@
 # Randomness and Cryptography Examples
 
-This directory contains code examples demonstrating concepts from Chapter 4: Crypto & Cryptography.
+This directory contains code examples demonstrating concepts from Chapter 3: Crypto & Cryptography.
 
 ## Files
 

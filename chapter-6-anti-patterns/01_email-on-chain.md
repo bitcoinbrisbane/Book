@@ -12,7 +12,7 @@ Users can run servers with a known DNS, do a key exchange, and communicate throu
 
 That said — *as a learning exercise* — building a blockchain-backed messaging app is one of the better entrées into the stack. It hits two non-trivial properties straight away:
 
-- **Distributed.** There is no central server to point at. Messages flow through a peer-to-peer network, which forces you to wrestle with the same problems we covered in Chapter 3 — discovery, gossip, mempool, persistence.
+- **Distributed.** There is no central server to point at. Messages flow through a peer-to-peer network, which forces you to wrestle with the same problems we covered in Chapter 4 — discovery, gossip, mempool, persistence.
 - **Pay per message.** The unit economics are obvious. Every send maps to a fee. Every fee maps to a real network resource. The cost model is concrete in a way that "deploy a smart contract" rarely is for a beginner.
 
 Email is one of the simplest real-world protocols there is. *Sender → recipient → done.* Re-implementing it on a chain forces you to confront most of the architectural decisions in this book without the complexity of an order book or a token bridge.

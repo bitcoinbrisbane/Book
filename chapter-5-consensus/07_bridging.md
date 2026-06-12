@@ -80,7 +80,7 @@ Let's look at the parts.
 pragma solidity ^0.8.24;
 ```
 
-The first line is the **SPDX licence identifier** (covered in Chapter 6). `UNLICENSED` means we're explicitly claiming no licence — appropriate for a contract still in development, where you don't want anyone copying it yet. When we publish, we'll switch to `MIT` or `Apache-2.0`.
+The first line is the **SPDX licence identifier** (covered in Chapter 10). `UNLICENSED` means we're explicitly claiming no licence — appropriate for a contract still in development, where you don't want anyone copying it yet. When we publish, we'll switch to `MIT` or `Apache-2.0`.
 
 The pragma pins us to Solidity `0.8.24` or any compatible patch release. We're past the era when overflow / underflow had to be guarded explicitly — Solidity has had checked arithmetic since 0.8.0, which removes a category of subtle bugs at the language level. Pinning to a recent patch lets us pick up compiler fixes without inviting breakage.
 

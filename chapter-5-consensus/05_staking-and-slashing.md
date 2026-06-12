@@ -10,7 +10,7 @@ The stake doesn't live on our chain. It lives on the Ethereum mainnet, in a smar
 
 Our staking contract will allow holders of our ERC20 to **stake** — or "vest" — by transferring tokens to the contract. The contract pulls tokens from the user's wallet rather than receiving them passively, which means the user has to *pre-authorise* the transfer via the standard ERC20 `approve` flow before calling our `deposit`. That's the cost of treating ERC20 as a *pull* primitive: every transfer of tokens you don't own requires explicit allowance.
 
-We covered the mechanic in Chapter 6's ERC20 page; here it shows up as a real architectural constraint.
+We covered the mechanic in Chapter 10's ERC20 page; here it shows up as a real architectural constraint.
 
 ## What we're building
 

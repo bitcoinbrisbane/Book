@@ -55,6 +55,6 @@ Post-AA, a dApp can offer:
 - Recovery via email/phone if the key is lost.
 - Payment in stablecoins, never touching ETH.
 
-For our poker project, that's the difference between *"download a wallet, fund it, then play"* and *"sign in with your email"*. We'll come back to AA when we build the desktop client in Chapter 10 — it's the single feature that most changes what a "wallet" looks like to a non-crypto-native user.
+For our poker project, that's the difference between *"download a wallet, fund it, then play"* and *"sign in with your email"*. We'll come back to AA when we build the desktop client in Chapter 9 — it's the single feature that most changes what a "wallet" looks like to a non-crypto-native user.
 
 The standards are still moving. Track [eips.ethereum.org](https://eips.ethereum.org/) for the next round of changes — multi-EOA delegation, paymaster compositions, and the inevitable rough edges that don't show up until you've shipped to ten million users.
