@@ -73,9 +73,7 @@ Where:
 - **y** is the quantity of asset B in the liquidity pool.
 - **k** is a constant, representing the pool's total liquidity. *It is invariant during trades.*
 
-**Liquidity providers** (LPs) are users who deposit capital into the pool. In return, they earn a share of every trading fee paid through it.
-
-When a trader swaps asset A for asset B, the quantities in the pool change. If someone buys asset B out of the pool, they have to deposit a certain amount of asset A *into* the pool — exactly the amount that keeps `x * y` equal to the same `k`.
+**Liquidity providers** (LPs) are users who deposit capital into the pool. In return, they earn a share of every trading fee paid through it. When a trader swaps asset A for asset B, the quantities in the pool change. If someone buys asset B out of the pool, they have to deposit a certain amount of asset A *into* the pool — exactly the amount that keeps `x * y` equal to the same `k`.
 
 The **price** of an asset in the pool is simply the ratio of the two reserves:
 

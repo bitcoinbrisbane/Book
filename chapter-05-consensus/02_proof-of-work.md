@@ -2,7 +2,7 @@
 
 The 2009 [Bitcoin whitepaper](https://bitcoin.org/bitcoin.pdf), written by Satoshi Nakamoto, introduces **Proof of Work** (PoW) as the core consensus mechanism of the network. Under PoW, network participants — known as **miners** — race to find a value whose hash, when fed into a function, is *less than* an arbitrary target value. The whitepaper calls this the **target difficulty**.
 
-The name comes from the analogy of gold miners prospecting for gold. As we saw in [the chapter on hash functions](../chapter-3-crypto-cryptography/03_hash-functions.md), a cryptographic hash output is effectively random for the user — there is no shortcut, no pattern, no way to predict in advance which input will produce a hash below the target.
+The name comes from the analogy of gold miners prospecting for gold. As we saw in [the chapter on hash functions](../chapter-03-crypto-cryptography/03_hash-functions.md), a cryptographic hash output is effectively random for the user — there is no shortcut, no pattern, no way to predict in advance which input will produce a hash below the target.
 
 So PoW is, fundamentally, a *probabilistic* search. If we think of hash attempts like rolling a die: from statistics class we know that rolling a six takes, on average, six rolls. If we equate "a roll" with "a unit of work", a miner who has found a valid hash has used, on average, `1 / (target / 2²⁵⁶)` units of work. The chain *measures* effort statistically — no individual miner can shortcut the average.
 
