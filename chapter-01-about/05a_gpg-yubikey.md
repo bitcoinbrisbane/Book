@@ -1,18 +1,20 @@
 # GPG on a YubiKey
 
-The previous section generated a GPG key directly on disk. Anyone with access to that file — or a memory dump, or a stolen laptop with a weak passphrase — has your private key. Moving the private key onto a hardware token like a YubiKey solves this: the secret material is generated on the device, never leaves it, and every signing or decryption operation requires the physical key to be present and (optionally) touched.
+The previous section generated a GPG key directly on disk. That key is a liability the moment it exists. Anyone with access to that file — a memory dump, a stolen laptop with a weak passphrase, a backup that synced to the cloud you forgot about — has your private key, forever, and you will probably never know it happened. A private key that lives on a general-purpose computer is a private key that is already compromised; you just haven't found out yet.
+
+So don't keep one there. Move the secret material onto a hardware token like a YubiKey, where it is generated and used inside a chip that physically cannot export it. This is not a "nice to have" or an advanced topic for later. If you are going to sign commits, authenticate over SSH, or hold an encryption key that matters, do it on hardware from day one. Software keys are training wheels, and they are the kind of training wheels that get you killed.
 
 ## Why a YubiKey?
 
-A YubiKey is a small USB device that implements the OpenPGP smart card standard. The private key lives in a tamper-resistant secure element. The host computer sends data to the card; the card performs the cryptographic operation internally and returns the result. The host never sees the key.
+A YubiKey is a small USB device that implements the OpenPGP smart card standard. The private key lives in a tamper-resistant secure element. The host computer sends data to the card; the card performs the cryptographic operation internally and returns the result. The host never sees the key — not when it's plugged in, not when it's signing, not ever.
 
-Practical implications:
+That single property changes the threat model entirely:
 
-- A compromised laptop cannot exfiltrate your signing key.
-- Signing or decrypting requires the YubiKey to be plugged in — and on YubiKey 5 series, optionally a physical touch per operation.
-- The same key can sign git commits, authenticate over SSH, and decrypt PGP email without ever being copied.
+- A fully compromised laptop — rootkit, keylogger, the works — still cannot exfiltrate your signing key. The best it can do is ask the card to sign something while you're not looking, which is exactly what the touch policy below exists to stop.
+- Signing or decrypting requires the physical key to be present. Your secret is now a thing you can put in your pocket, not a file that can be copied a thousand times in a millisecond.
+- One device signs git commits, authenticates SSH, and decrypts mail — without that key material ever touching a disk.
 
-The trade-off is recovery: if you lose the YubiKey and have no backup, the key is gone. We address that below.
+Yes, there's a cost: lose the key with no backup and it's gone. People treat this as the reason to stay on software keys. It is not. It's the reason to set up recovery properly — which, done right, also means your laptop never holds a usable key. That's the whole setup, and it's the only one this book recommends. Read on.
 
 ## Prerequisites
 
@@ -21,14 +23,6 @@ You'll need:
 - A YubiKey 5 series (4 series also works, but 5 supports Curve 25519).
 - `gnupg` (already installed if you followed the previous section).
 - `ykman` — the YubiKey Manager CLI, useful for inspecting and configuring the device.
-
-On macOS:
-
-```bash
-brew install gnupg ykman pinentry-mac
-```
-
-On Debian/Ubuntu:
 
 ```bash
 sudo apt install gnupg2 yubikey-manager scdaemon pcscd
@@ -71,50 +65,41 @@ passwd
 
 Select option `1` to change the User PIN, then `3` to change the Admin PIN. Pick strong PINs — the YubiKey will block after 3 wrong User PIN attempts and 3 wrong Admin PIN attempts, after which the card must be reset (destroying any keys on it).
 
-## Approach 1: Generate Keys On-Card
+## The Right Way: Offline Master, Subkeys on the Card
 
-The most secure approach is to generate the keys directly on the YubiKey. The private key material never exists outside the secure element.
+There are two ways to get keys onto a YubiKey. This is the one to use. I'll cover the other one afterwards only so you can recognise it and walk away.
 
-The downside: there is no backup. If the YubiKey is lost or destroyed, the key is unrecoverable. For a signing key this is usually fine — you just rotate. For an encryption key it means every message encrypted to that key is permanently unreadable.
+You generate a full keypair on an air-gapped machine, keep the master (certify) key offline on encrypted backup media, and move only the day-to-day subkeys to the YubiKey. The master key — the one with the authority to certify identity and revoke subkeys — is never on a networked computer at all. The card holds working subkeys; your backup media holds the master. Lose the YubiKey and you haven't lost anything that matters: the offline master issues a revocation and provisions a replacement card by lunchtime.
 
-From the `gpg/card>` prompt:
-
-```text
-admin
-generate
-```
-
-GPG will ask whether to make an off-card backup of the encryption key — answer `n` for the strictest model, `y` if you want a paper or offline backup of the encryption subkey only (the signing and authentication subkeys cannot be backed up this way).
-
-You'll be prompted for the Admin PIN, key expiry, name, and email. The card will generate three subkeys:
-
-- **[S]** Signing
-- **[E]** Encryption
-- **[A]** Authentication
-
-This takes around 30–60 seconds per subkey on a YubiKey 5.
-
-## Approach 2: Generate Off-Card, Then Move Subkeys
-
-This is the more common workflow for power users. You generate a full keypair on an air-gapped machine, keep the master (certify) key offline on encrypted backup media, and move only the day-to-day subkeys to the YubiKey. If the YubiKey is lost, the offline master can issue revocations and provision a replacement.
+This is the setup that delivers on the whole promise of hardware keys. Your laptop holds **no usable private key material, ever** — not the master, not the subkeys. It holds *stubs*: pointers that tell GPG "to use this key, talk to the smart card." A stolen laptop is a stolen laptop, not a stolen identity.
 
 The high-level steps:
 
 1. Boot a clean machine (Tails or a freshly-installed Linux USB is ideal).
 2. Generate a master certify-only key plus signing, encryption, and authentication subkeys.
-3. Export the master key and revocation certificate to encrypted backup media (two copies, stored in different physical locations).
+3. Export the master key and revocation certificate to encrypted backup media — two copies, two physical locations. Do this now, while the master exists. There is no second chance.
 4. Move the subkeys to the YubiKey using `keytocard` in `gpg --edit-key`.
 5. Delete the master key from the working machine, leaving only stubs that point at the YubiKey.
 
-The detailed walkthrough is long enough to deserve its own write-up — [drduh/YubiKey-Guide](https://github.com/drduh/YubiKey-Guide) is the canonical reference and the one I followed when setting mine up. The important conceptual point is: after this process, your laptop holds no private key material at all. It holds *stubs* — pointers that tell GPG "to use this key, talk to the smart card."
+The full step-by-step is long enough to deserve its own write-up, and [drduh/YubiKey-Guide](https://github.com/drduh/YubiKey-Guide) already is that write-up — it's the canonical reference and the one I followed when setting mine up. Follow it end to end. Don't improvise the parts you don't understand yet.
 
-You can confirm this with:
+Confirm the result:
 
 ```bash
 gpg --list-secret-keys
 ```
 
-The output will show `ssb>` (with a `>` suffix) rather than plain `ssb` for each subkey — the `>` indicates the secret is on a smart card.
+Each subkey shows `ssb>` — the `>` means "the secret is on a smart card." That `>` is the entire point of this exercise. If you don't see it, the private key is still on your disk and you are not done.
+
+## The Trap: Generating Keys On-Card
+
+You will find guides that tell you to generate the keys directly on the YubiKey from the `gpg/card>` prompt with `admin` then `generate`. It sounds *more* secure — the key material never exists outside the secure element, not even for a moment. It is the seductive option, and for most people it is the wrong one.
+
+Here's what those guides bury: **there is no backup, and there cannot be.** The signing and authentication subkeys can never leave the card. If the card dies, is lost, or you fat-finger the PIN three times and brick it, those keys are gone. For a signing key that's an annoyance — you rotate and move on. For the **encryption** key it is a catastrophe: every message anyone ever encrypted to that key is now permanently, irrecoverably unreadable. You don't get to apologise your way out of lost ciphertext.
+
+On-card generation only makes sense in one narrow case: a signing-and-auth-only key you are genuinely happy to throw away and rotate, with no encryption subkey in the picture at all. That is a real but rare situation. If you have to think about whether it applies to you, it doesn't — use the offline-master setup above.
+
+If you've read all that and still have a reason to generate on-card, the mechanics are: enter `gpg --card-edit`, then `admin`, then `generate`, and answer `n` when it offers an off-card backup of the encryption key (answer `y` only if you want an offline backup of the encryption subkey — at which point you've reinvented half of Approach 1, badly). It generates three subkeys (**[S]** Signing, **[E]** Encryption, **[A]** Authentication) at roughly 30–60 seconds each on a YubiKey 5.
 
 ## Signing With the YubiKey
 
@@ -126,7 +111,7 @@ echo "hello world" | gpg --clearsign
 
 First time per session: PIN prompt. Every signing operation after that: a touch on the YubiKey if touch policy is on.
 
-To enable touch-to-sign (recommended — it prevents malware from silently signing while the card is plugged in):
+Turn touch on. All three slots. This is not optional and it is not a preference — it is the difference between a hardware key and a slow software key. Without it, malware doesn't need to steal your key; it just waits until the card is plugged in (which is most of the time) and asks it to sign whatever it likes, silently. The touch requirement means no signature happens without a human physically tapping the device. That's the property you bought the YubiKey for. Enable it and don't think about it again:
 
 ```bash
 ykman openpgp keys set-touch sig on
@@ -153,7 +138,9 @@ The trailing `!` tells GPG to use that specific subkey rather than picking one i
 
 ## Using the YubiKey for SSH
 
-The authentication subkey can replace your SSH key entirely. Enable the GPG agent's SSH support:
+Use the authentication subkey as your SSH key and delete the `~/.ssh/id_*` files you've been carrying around. A software SSH key on disk has exactly the problem this whole chapter is about — it's a copyable secret sitting on a general-purpose computer. The auth subkey you already have on the card does the same job and can't be stolen off the machine. One key, one device to protect, one thing to lose. Don't keep a second.
+
+Enable the GPG agent's SSH support:
 
 ```bash
 echo "enable-ssh-support" >> ~/.gnupg/gpg-agent.conf
@@ -191,7 +178,7 @@ A few failure modes worth knowing:
 - **`gpg: signing failed: No such device`** — the agent has stale state. Run `gpgconf --kill gpg-agent` and retry.
 - **Card not detected on Linux** — `pcscd` isn't running, or `scdaemon` is fighting with another smart card service. `systemctl restart pcscd` usually fixes it.
 - **`PIN blocked`** — you entered the wrong User PIN 3 times. Unblock with the Admin PIN via `gpg --card-edit` → `admin` → `passwd` → option `2` (unblock PIN).
-- **Lost YubiKey** — use your offline revocation certificate to publish a revocation, then provision a replacement from your offline master key backup. This is why Approach 2 is worth the extra setup.
+- **Lost YubiKey** — publish a revocation with your offline revocation certificate, then provision a replacement from your offline master backup. Total damage: one afternoon and the price of a new key. If your reaction to this scenario is "wait, I don't have an offline master" then you took the trap, and a lost key now means a lost identity. This is the entire reason the offline-master setup is the only one this book recommends.
 
 ## References
 

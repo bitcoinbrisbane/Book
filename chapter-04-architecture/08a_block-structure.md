@@ -1,13 +1,13 @@
-# Bitcoin Block Structure
+## Bitcoin Block Structure
 
-Understanding how Bitcoin blocks are structured is fundamental to grasping how the entire Bitcoin network operates. Each block is a carefully organized package of data that serves as both a record of transactions and a link in the blockchain.
+The previous sections described the layers a node is built from. Before we trace a transaction through Bitcoin Core in [How It Works: Bitcoin](./09_how-it-works-bitcoin.md), it helps to know what the finished product — a block — actually looks like on the wire. Each block is a carefully organized package of data that serves as both a record of transactions and a link in the blockchain.
 
 ## Block Components Overview
 
 A Bitcoin block consists of two main parts:
 
-1. **Block Header** (80 bytes) - Contains metadata about the block
-2. **Transaction Data** (variable size) - Contains all the transactions
+1. **Block Header** (80 bytes) — Contains metadata about the block
+2. **Transaction Data** (variable size) — Contains all the transactions
 
 ## Block Header Structure
 
@@ -20,13 +20,13 @@ The block header is exactly 80 bytes and contains six critical fields:
 | **Merkle Root** | 32 bytes | Root hash of the Merkle tree of all transactions |
 | **Timestamp** | 4 bytes | Block creation time (Unix timestamp) |
 | **Difficulty Target** | 4 bytes | Current difficulty target for mining |
-| **Nonce** | 4 bytes | Number used once - incremented during mining |
+| **Nonce** | 4 bytes | Number used once — incremented during mining |
 
 ### Key Header Fields Explained
 
 **Previous Block Hash**: This field creates the "chain" in blockchain. It contains the SHA-256 hash of the previous block's header, cryptographically linking blocks together. If someone tries to alter a previous block, its hash would change, breaking the chain.
 
-**Merkle Root**: This is a single hash that represents all transactions in the block. The Merkle tree structure allows anyone to verify that a specific transaction is included in a block without downloading the entire block data.
+**Merkle Root**: This is a single hash that represents all transactions in the block. The Merkle tree structure allows anyone to verify that a specific transaction is included in a block without downloading the entire block data. We covered how these trees are built in [Merkle Trees](../chapter-03-crypto-cryptography/05_merkle-trees.md).
 
 **Nonce**: During mining, this is the field that miners increment while searching for a valid hash. When the SHA-256 hash of the entire block header meets the difficulty requirement, the block is considered successfully mined.
 
@@ -40,17 +40,17 @@ Following the 80-byte header comes the transaction data:
 
 ```
 ┌─────────────────────────────────────────┐
-│ Transaction Count (1-9 bytes, VarInt)   │
+│ Transaction Count (1-9 bytes, VarInt)    │
 ├─────────────────────────────────────────┤
-│ Transaction 1 (Coinbase Transaction)    │
+│ Transaction 1 (Coinbase Transaction)     │
 ├─────────────────────────────────────────┤
-│ Transaction 2                           │
+│ Transaction 2                            │
 ├─────────────────────────────────────────┤
-│ Transaction 3                           │
+│ Transaction 3                            │
 ├─────────────────────────────────────────┤
-│ ...                                     │
+│ ...                                      │
 ├─────────────────────────────────────────┤
-│ Transaction N                           │
+│ Transaction N                            │
 └─────────────────────────────────────────┘
 ```
 
@@ -81,7 +81,7 @@ The Merkle tree is a binary tree structure that efficiently summarizes all trans
 3. This process continues up the tree until a single root hash remains
 4. If there's an odd number of transactions at any level, the last hash is duplicated
 
-This structure allows for efficient verification - to prove a transaction is in a block, you only need to provide the transaction and a small number of intermediate hashes (the "Merkle path").
+This structure allows for efficient verification — to prove a transaction is in a block, you only need to provide the transaction and a small number of intermediate hashes (the "Merkle path").
 
 ## Block Size Specifications
 
@@ -99,7 +99,7 @@ Here's what a simplified block might look like:
 
 ```
 ┌─────────────────────────────────────────┐
-│ BLOCK HEADER (80 bytes)                 │
+│ BLOCK HEADER (80 bytes)                  │
 │ ┌─────────────────────────────────────┐ │
 │ │ Version: 0x20000000                 │ │
 │ │ Prev Hash: 000000000000000000015... │ │
@@ -109,14 +109,14 @@ Here's what a simplified block might look like:
 │ │ Nonce: 3917165906                   │ │
 │ └─────────────────────────────────────┘ │
 ├─────────────────────────────────────────┤
-│ TRANSACTION DATA                        │
+│ TRANSACTION DATA                         │
 │ ┌─────────────────────────────────────┐ │
-│ │ Tx Count: 2,847                    │ │
-│ │ Coinbase: 4a5e1e4baab89f3a32518... │ │
+│ │ Tx Count: 2,847                     │ │
+│ │ Coinbase: 4a5e1e4baab89f3a32518...  │ │
 │ │ Tx 1: 6359f0868171b1d194cbee1af2... │ │
 │ │ Tx 2: e3bf3d07d4b0375638d5f1db52... │ │
 │ │ ...                                 │ │
-│ │ Tx 2,847: 9f2c4e5d8a7b3f1e6c9d... │ │
+│ │ Tx 2,847: 9f2c4e5d8a7b3f1e6c9d...   │ │
 │ └─────────────────────────────────────┘ │
 └─────────────────────────────────────────┘
 ```
@@ -140,12 +140,6 @@ Here's what a simplified block might look like:
 - Transaction data can be up to 1 MB but is separate from the header
 - This structure enables Bitcoin's key properties: decentralization, security, and efficiency
 
-The elegant simplicity of this structure—just 80 bytes of header data linking megabytes of transaction information—is one of Bitcoin's most ingenious design features. It allows the network to maintain security and consensus while remaining efficient enough for global operation.
+The elegant simplicity of this structure — just 80 bytes of header data linking megabytes of transaction information — is one of Bitcoin's most ingenious design features. It allows the network to maintain security and consensus while remaining efficient enough for global operation.
 
-
-Key Header Fields Explained
-Previous Block Hash: This field creates the "chain" in blockchain. It contains the SHA-256 hash of the previous block's header, cryptographically linking blocks together. If someone tries to alter a previous block, its hash would change, breaking the chain.
-Merkle Root: This is a single hash that represents all transactions in the block. The Merkle tree structure allows anyone to verify that a specific transaction is included in a block without downloading the entire block data.
-Nonce: During mining, this is the field that miners increment while searching for a valid hash. When the SHA-256 hash of the entire block header meets the difficulty requirement, the block is considered successfully mined.
-Timestamp: Must be greater than the median timestamp of the last 11 blocks and cannot be more than 2 hours in the future. This prevents manipulation of block timing.
-Difficulty Target: Automatically adjusts every 2,016 blocks (approximately every two weeks) to maintain an average block time of 10 minutes, regardless of total network hash power.
+With the shape of a block in hand, the next section follows a transaction through the code that produces one: [How It Works: Bitcoin](./09_how-it-works-bitcoin.md).

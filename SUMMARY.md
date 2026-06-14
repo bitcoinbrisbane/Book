@@ -46,6 +46,7 @@
 * [Persistence Layer](chapter-04-architecture/07_persistence-layer.md)
 * [Mempool Layer](chapter-04-architecture/07a_mempool-layer.md)
 * [CAP Theorem](chapter-04-architecture/08_cap-theorem.md)
+* [Bitcoin Block Structure](chapter-04-architecture/08a_block-structure.md)
 * [How It Works: Bitcoin](chapter-04-architecture/09_how-it-works-bitcoin.md)
 * [How It Works: Ethereum](chapter-04-architecture/10_how-it-works-ethereum.md)
 * [Toy Node — Overview](chapter-04-architecture/11_toy-node-overview.md)
@@ -121,6 +122,5 @@
 
 # Appendices
 
-* [Bitcoin Block Structure](blockchain-block.md)
 * [Zero-Knowledge Deck Shuffle](chapter-x-zero-knowledge/readme.md)
 * [Bibliography](bibliography.md)
