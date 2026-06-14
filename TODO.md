@@ -8,33 +8,35 @@ Generated 2026-06-14. Update as items are completed.
 These chapters have a polished "here's what's coming" introduction, but the
 subsequent pages it promises don't exist yet.
 
-| Chapter | Status | Promised but missing |
-|---------|--------|----------------------|
-| Ch 8 — Writing a Compiler | intro only | Lexing, Parsing, Semantic analysis, IR, Code generation, Runtime/VM (one page each) |
-| Ch 9 — The Desktop Client | intro only | Stack choice, Wallet integration, Network layer, State management, Game rendering, Packaging |
-| Ch 11 — Governance | intro only | On/off-chain governance, Voting mechanisms, Proposals & timelocks, Treasury, Upgradability, Dispute resolution |
+| Chapter | Status | Issue | Promised but missing |
+|---------|--------|-------|----------------------|
+| Ch 8 — Writing a Compiler | intro only | [#3](https://github.com/bitcoinbrisbane/Book/issues/3) | Lexing, Parsing, Semantic analysis, IR, Code generation, Runtime/VM (one page each) |
+| Ch 9 — The Desktop Client | intro only | [#4](https://github.com/bitcoinbrisbane/Book/issues/4) | Stack choice, Wallet integration, Network layer, State management, Game rendering, Packaging |
+| Ch 11 — Governance | intro only | [#5](https://github.com/bitcoinbrisbane/Book/issues/5) | On/off-chain governance, Voting mechanisms, Proposals & timelocks, Treasury, Upgradability, Dispute resolution |
 
 ## Rough drafts needing a rewrite
 
-| File | Issue |
-|------|-------|
-| `chapter-02-the-general-idea/02_the-idea.md` | Heavy typos; contains literal author notes `(Genius bill?)` and "Need to have a part about other US legals" |
-| `chapter-04-architecture/01_when-do-we-need-a-chain.md` | Skeleton with typos; "Cap theorom states that we can either have constanicey, or..." trails off; empty "Read vs Write" section |
-| `chapter-04-architecture/03_writting-deterministic-code.md` | Typos in opening line (isoloate, contsctror, gettings, settters); filename also misspelled (writting) |
-| `chapter-12-legals/01_legals.md` | Note-form scratchpad (typos: reguations, Vanlilla); needs to be written up or cut |
+Typos in these have been fixed; the structural gaps below remain.
+
+| File | Issue | Remaining work |
+|------|-------|----------------|
+| `chapter-02-the-general-idea/02_the-idea.md` | [#6](https://github.com/bitcoinbrisbane/Book/issues/6) | Author notes `(Genius bill?)` and "part about other US legals" still to be written |
+| `chapter-04-architecture/01_when-do-we-need-a-chain.md` | [#7](https://github.com/bitcoinbrisbane/Book/issues/7) | CAP sentence trails off; empty "Read vs Write" section |
+| `chapter-04-architecture/03_writting-deterministic-code.md` | — | Typos fixed; filename still misspelled (writting) — rename is a separate call |
+| `chapter-12-legals/01_legals.md` | — | Typos fixed; still a note-form scratchpad — write up or cut |
 
 ## Missing / placeholder code
 
-| File | Line | Item |
-|------|------|------|
-| `chapter-03-crypto-cryptography/02_randomness.md` | 160 | `[TODO: GO CODE]` — Go sample never written |
-| `chapter-03-crypto-cryptography/09_replay-attacks.md` | 140 | "placeholder for demonstration" — needs real example |
-| `chapter-05-consensus/04_our-consensus.md` | 65–70 | Six hollow `/* TODO */` methods. **Intentional** — deferred to the "Tech Stack chapter" (which does not yet exist as a chapter) |
+| File | Line | Issue | Item |
+|------|------|-------|------|
+| `chapter-03-crypto-cryptography/02_randomness.md` | 160 | [#8](https://github.com/bitcoinbrisbane/Book/issues/8) | `[TODO: GO CODE]` — Go sample never written |
+| `chapter-03-crypto-cryptography/09_replay-attacks.md` | 140 | [#9](https://github.com/bitcoinbrisbane/Book/issues/9) | "placeholder for demonstration" — needs real example |
+| `chapter-05-consensus/04_our-consensus.md` | 65–70 | — | Six hollow `/* TODO */` methods. **Intentional** — deferred to the "Tech Stack chapter" (which does not yet exist as a chapter) |
 
 ## Orphaned directories (not in SUMMARY.md)
 
-These exist in the tree but aren't wired into the table of contents. Decide:
-fold in, or delete.
+Tracked in [#10](https://github.com/bitcoinbrisbane/Book/issues/10). These exist in the
+tree but aren't wired into the table of contents. Decide: fold in, or delete.
 
 | Path | Notes |
 |------|-------|
