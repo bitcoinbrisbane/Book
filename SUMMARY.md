@@ -39,7 +39,7 @@
 
 * [When do we need a chain?](chapter-04-architecture/01_when-do-we-need-a-chain.md)
 * [What's On-Chain, What's Off-Chain?](chapter-04-architecture/02_onchain.md)
-* [Writing Deterministic Code](chapter-04-architecture/03_writting-deterministic-code.md)
+* [Writing Deterministic Code](chapter-04-architecture/03_writing-deterministic-code.md)
 * [Layers](chapter-04-architecture/04_layers.md)
 * [Discovery Layer](chapter-04-architecture/05_discovery-layer.md)
 * [Communications Layer](chapter-04-architecture/06_communications-layer.md)

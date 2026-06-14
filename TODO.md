@@ -22,7 +22,7 @@ Typos in these have been fixed; the structural gaps below remain.
 |------|-------|----------------|
 | `chapter-02-the-general-idea/02_the-idea.md` | [#6](https://github.com/bitcoinbrisbane/Book/issues/6) | Author notes `(Genius bill?)` and "part about other US legals" still to be written |
 | `chapter-04-architecture/01_when-do-we-need-a-chain.md` | [#7](https://github.com/bitcoinbrisbane/Book/issues/7) | CAP sentence trails off; empty "Read vs Write" section |
-| `chapter-04-architecture/03_writting-deterministic-code.md` | — | Typos fixed; filename still misspelled (writting) — rename is a separate call |
+| `chapter-04-architecture/03_writing-deterministic-code.md` | — | Typos fixed; filename corrected (was "writting"). Complete. |
 | `chapter-12-legals/01_legals.md` | — | Typos fixed; still a note-form scratchpad — write up or cut |
 
 ## Missing / placeholder code
