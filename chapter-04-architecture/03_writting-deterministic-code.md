@@ -1,8 +1,8 @@
 ## Writing deterministic code
 
-If you've written Typescript, Java or C# code (maybe others), writing your code in a paradigm that can be unit testable means you've all ready thought about determinstic code.
+If you've written TypeScript, Java or C# code (maybe others), writing your code in a paradigm that can be unit tested means you've already thought about deterministic code.
 
-To isoloate parts of the system for unit tests, we write mocks or stubs, then inject these via contsctror injections or gettings and settters.
+To isolate parts of the system for unit tests, we write mocks or stubs, then inject these via constructor injection or getters and setters.
 
 In Solidity, we do this same thing.
 

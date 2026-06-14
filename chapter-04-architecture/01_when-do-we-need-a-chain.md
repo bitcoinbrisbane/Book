@@ -1,11 +1,11 @@
 ## When do we need a chain?
 
-Inevitablly, the decsion of whats on chain and whats off chain will arise.
+Inevitably, the decision of what's on chain and what's off chain will arise.
 
-## Cap theorom?
+## CAP theorem?
 
-Cap theorom states that we can either have constanicey, or...
+CAP theorem states that we can either have consistency, or...
 
-Lets look at this in practice.
+Let's look at this in practice.
 
 ## Read vs Write

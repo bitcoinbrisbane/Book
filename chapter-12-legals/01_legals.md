@@ -1,10 +1,10 @@
 ## About
 
-The legal frameworks, reguations are well outside the remit of this book. I have no groundings, but I find it really interesting to think about.
+The legal frameworks and regulations are well outside the remit of this book. I have no groundings, but I find it really interesting to think about.
 
 What is property and what is digital property?
 
-## Case Vanlilla Ice
+## Case Vanilla Ice
 
 
 Has every song been written?  Harddrive of songs?
