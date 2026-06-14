@@ -40,7 +40,7 @@ tree but aren't wired into the table of contents. Decide: fold in, or delete.
 
 | Path | Notes |
 |------|-------|
-| `chapter-5-domain-specific-language/` | Three prose files (`01-creating-our-own-langauge.md`, `02-a-simple-game.md`, `03-langauge-design.md`) — looks like an earlier draft of the CardLang/Compiler material (Ch 7/8). Filename typo: "langauge". Not referenced anywhere. |
+| `chapter-5-domain-specific-language/` | Three prose files (`01-creating-our-own-language.md`, `02-a-simple-game.md`, `03-language-design.md`) — looks like an earlier draft of the CardLang/Compiler material (Ch 7/8). Filename typos fixed. Not referenced anywhere. |
 | `chapter-4-crypto-cryptography/` | Only a `sample/` dir (signing code with committed `node_modules`). Duplicate numbering of Ch 3. |
 | `chapter-pvm/` | Only a `sample/` dir; README references `chapter-pvm/sample/` but it's not in SUMMARY. |
 | `src/` | `src/chap_5/node/README.md` is a 2-line stub; unclear how `src/` relates to `code/`. |
