@@ -407,3 +407,6 @@ FodyWeavers.xsd
 node_modules
 _book
 book.pdf
+
+# Generated book PDF exports
+Its time to build*.pdf
