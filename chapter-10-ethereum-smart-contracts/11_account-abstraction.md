@@ -16,15 +16,17 @@ That split is the single biggest UX problem on Ethereum. A wallet user has to:
 
 ## EIP-4337 — account abstraction without a hard fork
 
-The genius of [EIP-4337](https://eips.ethereum.org/EIPS/eip-4337) (March 2023) is that it implements AA *without changing the Ethereum protocol*. No hard fork, no new opcodes. It's purely a contract + off-chain infrastructure pattern that wallets opt into.
+The genius of [EIP-4337](https://eips.ethereum.org/EIPS/eip-4337) (deployed March 2023, ratified **Final** in 2024) is that it implements AA *without changing the Ethereum protocol*. No hard fork, no new opcodes. It's purely a contract + off-chain infrastructure pattern that wallets opt into. The canonical reference for the moving parts lives at [docs.erc4337.io](https://docs.erc4337.io/).
 
 The pieces:
 
 - **Smart account contract** — a contract that *is* the user's wallet. It owns assets, enforces arbitrary signing logic (multisig, social recovery, session keys, biometric attestation), and exposes a `validateUserOp` method.
 - **`UserOperation`** — a pseudo-transaction. Looks like a regular tx but lives in a *separate* mempool. Contains the smart account's address, the call data, gas parameters, and a signature in whatever format the smart account expects.
 - **Bundlers** — off-chain actors who pick up UserOperations from the AA mempool, bundle them together, and submit them as a *single* real transaction to a singleton contract.
-- **EntryPoint** — that singleton contract. Receives the bundle, validates each UserOp by calling the smart account's `validateUserOp`, executes the calls, and refunds the bundler for gas.
+- **EntryPoint** — that singleton contract. Receives the bundle, validates each UserOp by calling the smart account's `validateUserOp`, executes the calls, and refunds the bundler for gas. It's deployed at the same canonical address on Ethereum mainnet and every major L2. The current release is **v0.8** (March 2025); v0.7 (`0x0000000071727De22E5E9d8BAf0edAc6f37da032`) is still widely in use, and v0.6 before it.
 - **Paymasters (optional)** — contracts that *pay gas on behalf of* a UserOp. The user pays the paymaster in some other token (USDC, the dApp's own token, nothing if it's sponsored). The paymaster reimburses the bundler in ETH at the EntryPoint.
+
+Two companion standards round out the system. [**ERC-7562**](https://eips.ethereum.org/EIPS/eip-7562) is the *validation rules* spec — the restrictions on what a smart account or paymaster may touch during validation, so a bundler can simulate a UserOp and trust that on-chain execution won't behave differently. It's what makes the alt-mempool DoS-resistant. If you ever run a bundler, ERC-7562 is the part you actually have to implement correctly.
 
 The UX wins are substantial:
 
@@ -38,11 +40,13 @@ Production adoption is meaningful but uneven: every major L2 wallet supports 433
 
 ## EIP-7702 — letting EOAs borrow contract code
 
-[EIP-7702](https://eips.ethereum.org/EIPS/eip-7702) (shipped 2024-2025) is the followup that 4337 was always going to need: it lets an **EOA temporarily delegate to a contract** for the duration of a transaction. The EOA stays an EOA — same address, same private key — but for one transaction, code runs as if the EOA had a contract behind it.
+[EIP-7702](https://eips.ethereum.org/EIPS/eip-7702) (shipped in the **Pectra** hard fork, 7 May 2025) is the followup that 4337 was always going to need: it lets an **EOA delegate to a contract**, so the EOA's *address* runs that contract's code while keeping its same private key. Set the delegation once with a signed authorisation and it persists until you change it (unlike a one-shot per-transaction trick).
 
-This means an existing EOA wallet can opt into AA features (batching, session keys, sponsored gas) without migrating to a new address. No new account type, no asset transfer, no contract deployment. The user signs an *authorisation* (a small piece of signed data) and the wallet's address briefly behaves like a smart contract.
+This means an existing EOA wallet can opt into AA features (batching, session keys, sponsored gas) without migrating to a new address. No new account type, no asset transfer, no contract deployment. The user signs an *authorisation* (a small piece of signed data) and the wallet's address behaves like a smart contract.
 
-In practice 7702 has eaten a lot of 4337's UX wins. The two now coexist: 7702 for "regular users with existing EOAs who want a few smart-wallet features", 4337 for "fully smart-wallet-native flows with bundlers and paymasters". Most modern wallets (Argent, Safe, Rabby, MetaMask Smart Accounts) support both.
+Crucially, 7702 didn't make 4337 obsolete — **EntryPoint v0.8 absorbed it**. As of v0.8 the EntryPoint has *native* 7702 support: the UserOperation hash includes the delegation address, the contract checks the delegation is set correctly, and ERC-7562 gained a new `AUTH` validation category for it. v0.8 also ships [**Simple7702Account**](https://github.com/eth-infinitism/account-abstraction), a fully audited minimalist wallet that any EOA can safely authorise — it implements ERC-165, ERC-721/1155 receivers, ERC-1271 signatures, and 4337 v0.8 out of the box.
+
+So the two are now one stack, not rivals: 7702 turns your existing EOA *into* a smart account, and 4337's bundler/paymaster machinery drives it. The split in practice is "7702 for regular users with existing EOAs who want a few smart-wallet features" versus "fully smart-wallet-native flows" — but both run through the same EntryPoint. Most modern wallets (Argent, Safe, Rabby, MetaMask Smart Accounts) support both.
 
 ## Why this matters
 
@@ -57,4 +61,4 @@ Post-AA, a dApp can offer:
 
 For our poker project, that's the difference between *"download a wallet, fund it, then play"* and *"sign in with your email"*. We'll come back to AA when we build the desktop client in Chapter 9 — it's the single feature that most changes what a "wallet" looks like to a non-crypto-native user.
 
-The standards are still moving. Track [eips.ethereum.org](https://eips.ethereum.org/) for the next round of changes — multi-EOA delegation, paymaster compositions, and the inevitable rough edges that don't show up until you've shipped to ten million users.
+The standards are still moving. The next frontier is **native account abstraction** ([RIP-7560](https://github.com/eth-infinitism/account-abstraction)) — folding the EntryPoint's job into the protocol itself so UserOps become first-class transactions and the ~30k EntryPoint overhead disappears. Track [docs.erc4337.io](https://docs.erc4337.io/) and [eips.ethereum.org](https://eips.ethereum.org/) for the next round — paymaster compositions, multi-delegation, and the inevitable rough edges that don't show up until you've shipped to ten million users.
