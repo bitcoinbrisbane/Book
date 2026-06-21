@@ -410,3 +410,8 @@ book.pdf
 
 # Generated book PDF exports
 Its time to build*.pdf
+
+# Foundry (chapter 10 solidity)
+src/chap_10/solidity/lib/
+src/chap_10/solidity/out/
+src/chap_10/solidity/cache/

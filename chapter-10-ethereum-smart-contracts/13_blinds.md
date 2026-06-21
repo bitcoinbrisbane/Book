@@ -128,7 +128,9 @@ Look again at one line in `_postBlind`:
 uint256 posted = amount > p.stack ? p.stack : amount;
 ```
 
-What if a player's stack is *smaller* than the blind they owe? In real poker they post what they have and are **all-in for less**. This `min(amount, stack)` quietly does the right thing on the money side — it never lets a stack go negative. But it doesn't yet *track* that the player is all-in, and a correct hand needs to: an all-in player can't be asked to act again, and the pot may need to split into a main pot and side pots. We've handled the arithmetic and deferred the bookkeeping — a deliberate, *labelled* shortcut rather than a silent bug. We'll return to all-ins and side pots when we build the betting round.
+What if a player's stack is *smaller* than the blind they owe? In real poker they post what they have and are **all-in for less**. This `min(amount, stack)` quietly does the right thing on the money side — it never lets a stack go negative.
+
+A *fully* correct game would now split the pot into a main pot and one or more **side pots**, so a short-stacked all-in player can only win the portion they actually matched. Side pots are fiddly, and they're a distraction from the Solidity we're here to learn, so **our toy game deliberately skips them**: everyone contests one single pot. The `min(amount, stack)` line keeps the arithmetic honest — nobody's stack goes negative — and that's as far as we'll take it. It's a deliberate, *labelled* simplification, not a hidden bug.
 
 ### Where we are
 
