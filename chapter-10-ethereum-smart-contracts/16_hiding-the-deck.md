@@ -50,7 +50,33 @@ This is, bluntly, roughly what most real-money online poker has always done: a c
 
 The cryptographer's dream: deal a fair hand with **no trusted dealer at all**, where the secret is split so thoroughly that *no single party* — not even the house — ever knows the deck.
 
-The classic construction uses **commutative encryption**: encryption where the order of locking and unlocking doesn't matter, so `Encrypt_A(Encrypt_B(card))` can be decrypted by A and B in either order. The deal goes roughly:
+The classic construction uses **commutative encryption**: encryption where the order of locking and unlocking doesn't matter, so `Encrypt_A(Encrypt_B(card))` can be decrypted by A and B in either order. The original scheme (Shamir–Rivest–Adleman, 1979) builds this from modular exponentiation — each player picks a secret exponent `e`, and because exponents *multiply*, the locks commute. In Python pseudo-code:
+
+```python
+P = 2_147_483_647            # a large shared prime, agreed up front
+
+class Player:
+    def __init__(self, e):
+        self.e = e
+        self.d = pow(e, -1, P - 1)        # the inverse exponent: undoes e
+    def encrypt(self, card):
+        return pow(card, self.e, P)       # card ** e   (mod P)
+    def decrypt(self, card):
+        return pow(card, self.d, P)       # card ** d   (mod P)
+
+alice, bob = Player(65537), Player(101)
+
+card   = 42
+locked = bob.encrypt(alice.encrypt(card))   # locked by BOTH players
+
+# The magic: Alice can peel HER layer first, even though Bob locked last.
+half   = alice.decrypt(locked)              # Bob's lock still on
+final  = bob.decrypt(half)                  # 42 — fully unlocked
+
+assert final == card                        # order of unlocking didn't matter
+```
+
+The whole game hinges on that last line: a card encrypted by everyone can be decrypted by everyone *in any order*, so the layers can be removed one at a time, by different parties, to reveal exactly one card to exactly one player. The deal goes roughly:
 
 1. Every player encrypts the whole deck with their own secret key and shuffles it, then passes it on. After all players have done this, the deck is shuffled and locked by everyone — no one knows where any card is.
 2. To deal a card to a player, every *other* player removes their encryption layer, leaving only the recipient's layer, which the recipient alone can strip to see their card.
