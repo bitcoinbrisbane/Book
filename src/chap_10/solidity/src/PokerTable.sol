@@ -21,6 +21,8 @@ contract PokerTable {
         uint256 stack; // chips currently in front of the player
         bool seated;
         bool folded; // has given up the current hand
+        bool hasActed; // has acted since the last bet/raise this round
+        uint256 committed; // chips put into the pot this betting round
     }
 
     Player[MAX_PLAYERS] public seats;
@@ -30,6 +32,7 @@ contract PokerTable {
     uint8 public buttonSeat; // seat index of the dealer button
     uint256 public pot; // chips wagered this hand
     uint256 public currentBet; // amount a player must match to stay in
+    uint256 public lastRaiseSize; // size of the last raise, for min-raise rule
     uint8 public actingSeat; // whose turn it is to act
     bool public handInProgress;
     uint8 public activeInHand; // players who have not folded this hand
@@ -38,6 +41,10 @@ contract PokerTable {
     event HandStarted(uint8 button, uint8 smallBlindSeat, uint8 bigBlindSeat);
     event BlindPosted(uint8 seat, uint256 amount);
     event PlayerFolded(uint8 seat);
+    event PlayerChecked(uint8 seat);
+    event PlayerCalled(uint8 seat, uint256 amount);
+    event PlayerRaised(uint8 seat, uint256 toAmount);
+    event BettingRoundComplete(uint256 pot);
     event HandSettled(uint8 winnerSeat, uint256 amount);
 
     constructor(
@@ -75,7 +82,14 @@ contract PokerTable {
             "transfer failed"
         );
 
-        seats[seat] = Player({ wallet: msg.sender, stack: buyIn, seated: true, folded: false });
+        seats[seat] = Player({
+            wallet: msg.sender,
+            stack: buyIn,
+            seated: true,
+            folded: false,
+            hasActed: false,
+            committed: 0
+        });
         playerCount++;
 
         emit PlayerJoined(msg.sender, seat, buyIn);
@@ -110,6 +124,8 @@ contract PokerTable {
         for (uint8 i = 0; i < MAX_PLAYERS; i++) {
             if (seats[i].seated) {
                 seats[i].folded = false;
+                seats[i].hasActed = false;
+                seats[i].committed = 0;
             }
         }
         activeInHand = playerCount;
@@ -124,6 +140,7 @@ contract PokerTable {
         _postBlind(bbSeat, bigBlind);
 
         currentBet = bigBlind;
+        lastRaiseSize = bigBlind; // the next raise must be at least one big blind
         actingSeat = _nextOccupiedSeat(bbSeat); // under the gun
         handInProgress = true;
 
@@ -136,11 +153,7 @@ contract PokerTable {
     // ---------------------------------------------------------------------
 
     function fold() external {
-        require(handInProgress, "no hand in progress");
-
-        uint8 seat = actingSeat;
-        require(seats[seat].wallet == msg.sender, "not your turn");
-        require(!seats[seat].folded, "already folded");
+        uint8 seat = _requireTurn();
 
         seats[seat].folded = true;
         activeInHand--;
@@ -150,8 +163,111 @@ contract PokerTable {
         if (activeInHand == 1) {
             _settleToLastPlayer();
         } else {
+            _advanceAfterAction(seat);
+        }
+    }
+
+    // ---------------------------------------------------------------------
+    // The betting round: check, call, raise (chapter page: "The betting round")
+    // ---------------------------------------------------------------------
+
+    function check() external {
+        uint8 seat = _requireTurn();
+        // You may only check if you owe nothing — your committed already matches.
+        require(seats[seat].committed == currentBet, "must call or fold");
+
+        seats[seat].hasActed = true;
+        emit PlayerChecked(seat);
+
+        _advanceAfterAction(seat);
+    }
+
+    function call() external {
+        uint8 seat = _requireTurn();
+        Player storage p = seats[seat];
+
+        uint256 owed = currentBet - p.committed;
+        require(owed > 0, "nothing to call");
+        require(owed <= p.stack, "insufficient stack"); // toy: no all-in/side pots
+
+        p.stack -= owed;
+        p.committed += owed;
+        pot += owed;
+        p.hasActed = true;
+
+        emit PlayerCalled(seat, owed);
+
+        _advanceAfterAction(seat);
+    }
+
+    function raise(uint256 raiseBy) external {
+        uint8 seat = _requireTurn();
+        Player storage p = seats[seat];
+
+        // Enforce the min-raise: a raise must be at least the size of the last one.
+        require(raiseBy >= lastRaiseSize, "raise below minimum");
+
+        uint256 newBet = currentBet + raiseBy;
+        uint256 owed = newBet - p.committed; // call amount plus the raise
+        require(owed <= p.stack, "insufficient stack"); // toy: no all-in/side pots
+
+        p.stack -= owed;
+        p.committed += owed;
+        pot += owed;
+
+        currentBet = newBet;
+        lastRaiseSize = raiseBy;
+
+        // A raise reopens the action: everyone else must respond again.
+        _resetActedExcept(seat);
+        p.hasActed = true;
+
+        emit PlayerRaised(seat, newBet);
+
+        _advanceAfterAction(seat);
+    }
+
+    /// @dev Shared turn guard: hand running, caller owns the acting seat.
+    function _requireTurn() private view returns (uint8 seat) {
+        require(handInProgress, "no hand in progress");
+        seat = actingSeat;
+        require(seats[seat].wallet == msg.sender, "not your turn");
+        require(!seats[seat].folded, "already folded");
+    }
+
+    /// @dev Clear hasActed on every active player except `keep`, so a raise
+    ///      forces them all to act again.
+    function _resetActedExcept(uint8 keep) private {
+        for (uint8 i = 0; i < MAX_PLAYERS; i++) {
+            if (seats[i].seated && !seats[i].folded && i != keep) {
+                seats[i].hasActed = false;
+            }
+        }
+    }
+
+    /// @dev After any action, either close the round or pass to the next player.
+    function _advanceAfterAction(uint8 seat) private {
+        if (_roundComplete()) {
+            emit BettingRoundComplete(pot);
+            // A real game would now deal the next street (flop/turn/river) and
+            // open a fresh betting round. Our toy stops here: the hand is frozen
+            // at end-of-round, awaiting showdown logic we haven't written.
+        } else {
             actingSeat = _nextActiveSeat(seat);
         }
+    }
+
+    /// @dev The round is complete once every active player has acted since the
+    ///      last raise AND has matched the current bet.
+    function _roundComplete() private view returns (bool) {
+        for (uint8 i = 0; i < MAX_PLAYERS; i++) {
+            if (seats[i].seated && !seats[i].folded) {
+                if (!seats[i].hasActed || seats[i].committed != currentBet) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     function _settleToLastPlayer() private {
@@ -189,6 +305,7 @@ contract PokerTable {
         uint256 posted = amount > p.stack ? p.stack : amount; // all-in for less
 
         p.stack -= posted;
+        p.committed += posted;
         pot += posted;
 
         emit BlindPosted(seat, posted);

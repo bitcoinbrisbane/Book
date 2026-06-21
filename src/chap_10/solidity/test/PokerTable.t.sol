@@ -48,7 +48,7 @@ contract PokerTableTest is Test {
 
     function test_join_pullsTokensAndSeats() public {
         _seat(alice, 0);
-        (address wallet, uint256 stack, bool seated,) = table.seats(0);
+        (address wallet, uint256 stack, bool seated,,,) = table.seats(0);
         assertEq(wallet, alice);
         assertEq(stack, MIN);
         assertTrue(seated);
@@ -67,6 +67,60 @@ contract PokerTableTest is Test {
         assertEq(table.pot(), SB + BB);
         assertEq(table.currentBet(), BB);
         assertTrue(table.handInProgress());
+    }
+
+    function test_bettingRound_callsAroundAndBigBlindChecks() public {
+        _seat(alice, 0);
+        _seat(bob, 1);
+        _seat(carol, 2);
+        table.startHand();
+        // button=1, SB=2 (carol), BB=0 (alice), UTG=1 (bob) acts first.
+
+        // Bob (UTG) calls the big blind.
+        vm.prank(bob);
+        table.call();
+        assertEq(table.actingSeat(), 2); // action to carol (small blind)
+
+        // Carol owes BB - SB; she calls.
+        vm.prank(carol);
+        table.call();
+        assertEq(table.actingSeat(), 0); // action to alice (big blind option)
+
+        // Alice is the big blind with nothing to call; she checks to close.
+        assertTrue(table.handInProgress());
+        vm.prank(alice);
+        table.check();
+
+        // Everyone matched at the big blind; pot = 3 * BB.
+        assertEq(table.pot(), 3 * BB);
+        assertEq(table.currentBet(), BB);
+    }
+
+    function test_raise_reopensAction() public {
+        _seat(alice, 0);
+        _seat(bob, 1);
+        _seat(carol, 2);
+        table.startHand();
+        // button=1, SB=2 (carol), BB=0 (alice), UTG=1 (bob) acts first.
+
+        // Bob raises by one big blind: currentBet 2 -> 4.
+        vm.prank(bob);
+        table.raise(BB);
+        assertEq(table.currentBet(), 2 * BB);
+        assertEq(table.actingSeat(), 2); // carol
+
+        // Carol calls the raise (owes 4 - 1 = 3).
+        vm.prank(carol);
+        table.call();
+        assertEq(table.actingSeat(), 0); // alice
+
+        // Alice (was BB) now owes 4 - 2 = 2 to call the raise; round not done.
+        assertTrue(table.handInProgress());
+        vm.prank(alice);
+        table.call();
+
+        // All matched at 2*BB; pot = 3 * (2*BB).
+        assertEq(table.pot(), 3 * 2 * BB);
     }
 
     function test_foldToLastPlayer_settlesPot() public {
@@ -88,7 +142,7 @@ contract PokerTableTest is Test {
         assertFalse(table.handInProgress());
 
         // Alice posted BB (2) but wins SB+BB (3): net stack = MIN - BB + pot.
-        (, uint256 aliceStack,,) = table.seats(0);
+        (, uint256 aliceStack,,,,) = table.seats(0);
         assertEq(aliceStack, MIN - BB + potBefore);
     }
 }
