@@ -1,6 +1,6 @@
 ## Time-bound NFTs
 
-If ERC721 contracts (NFTs) are to be used for other applications like **ticketing** or **memberships**, the NFT must expire — or at least have a start and end date. A perpetual-ownership primitive doesn't fit a one-night event or a 12-month subscription.
+If ERC721 contracts (NFTs) are to be used for other applications like **ticketing** or **memberships**, the NFT must expire or at least have a start and end date. A perpetual-ownership primitive doesn't fit a one-night event or a 12-month subscription.
 
 [**EIP-5643**](https://eips.ethereum.org/EIPS/eip-5643) — "Subscription NFTs" — attempts to solve this by adding an `expiresAt` per token, plus events that let off-chain systems detect renewal and cancellation. It's a small, focused extension to ERC721 and is the closest thing to a "subscription standard" the ecosystem has.
 

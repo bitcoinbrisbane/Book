@@ -1,8 +1,8 @@
 ## Introduction
 
-Up until now our focus has been on building distributed ledger technology — the chain itself. Discovery, gossip, mempool, validation, persistence. But one of the most compelling aspects of blockchains, and *the* defining feature of Ethereum, is the concept of **smart contracts**: self-executing pieces of code that run on the blockchain, allowing for automated and trustless execution of predefined rules and logic.
+Up until now our focus has been on building distributed ledger technology. The chain itself. Discovery, gossip, mempool, validation, persistence. But one of the most compelling aspects of blockchains, and *the* defining feature of Ethereum, is the concept of **smart contracts**: self-executing pieces of code that run on the blockchain, allowing for automated and trustless execution of predefined rules and logic.
 
-In our poker project, smart contracts will play a pivotal role. They'll manage the state of each hand, enforce the rules of the game, determine the winner, and facilitate the fair distribution of payouts to participants. None of that can happen without a programmable execution layer on top of consensus — which is exactly what the Ethereum Virtual Machine (EVM) provides.
+In our poker project, smart contracts will play a small role.  We could try and code the entire game logic in solidity, but we would run in to significant challanges.  Our approach is be a defi style bridging contract where players can deposit an underlying stable coin, like USDT that will be bridged into the game.
 
 ## Solidity
 
@@ -18,9 +18,9 @@ We'll cover the major language features in the following pages:
 - **Custom exceptions** — defined errors that emit a typed revert reason.
 - **Inheritance** — single and multiple, with `is` and `super`.
 
-## A taste — the starting frame of a token contract
+## The starting frame of a token contract
 
-Here's a simple example of a token contract — the kind of contract you'd write for a stablecoin or any other fungible asset.
+Here's a simple example of a token contract, the kind of contract you'd write for a stablecoin or any other fungible asset.
 
 ```solidity
 // SPDX-License-Identifier: MIT
