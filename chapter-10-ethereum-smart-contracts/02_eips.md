@@ -8,7 +8,7 @@ EIPs are typically authored by developers and other stakeholders in the Ethereum
 - **Networking EIPs** focus on the network layer — peer-to-peer communication, devp2p subprotocols, data synchronisation.
 - **Interface EIPs** deal with standardisation that DApps and users rely on — APIs, naming conventions, and the application-level token standards we'll spend most of this chapter on.
 
-For our poker project, we'll focus almost entirely on **contract standards**. These provide the Interface track is where ERC20, ERC721, ERC1155 and friends live.
+For our poker project, we'll focus almost entirely on **contract standards**. These live on the Interface track, where ERC20, ERC721, ERC1155 and friends are defined.
 
 The EIP process is collaborative and transparent, allowing developers and the broader community to openly discuss, refine, and reach consensus on proposed changes. Once an EIP is accepted, it becomes part of the Ethereum improvement pipeline, and client teams work to implement it in the Ethereum client software. EIPs have been instrumental in shaping the network's evolution — from critical upgrades like the move to proof-of-stake (Chapter 5 covers the Merge) down to smaller improvements designed to enhance usability and security. They are a testament to the decentralised, community-driven nature of Ethereum's development.
 
