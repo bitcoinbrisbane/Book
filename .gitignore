@@ -415,3 +415,7 @@ Its time to build*.pdf
 src/chap_10/solidity/lib/
 src/chap_10/solidity/out/
 src/chap_10/solidity/cache/
+
+src/chap_8/solidity/out/
+src/chap_8/solidity/cache/
+src/chap_8/solidity/lib/
