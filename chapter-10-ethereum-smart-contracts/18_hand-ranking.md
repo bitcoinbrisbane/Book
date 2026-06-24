@@ -133,22 +133,50 @@ function best7(uint8[7] memory cards) internal pure returns (uint256 best) {
 
 Seven choose five is twenty-one combinations, which we enumerate by picking the two cards to *drop*. Twenty-one evaluations is nothing. This is the same lesson as the seating loops from earlier in the chapter: an unbounded loop on a public chain is a gas-limit footgun, but a loop over a small, fixed bound is perfectly safe. Twenty-one is fixed and tiny, so we reach for the clearest code rather than a clever bit-twiddling evaluator. (There are famous lookup-table hand evaluators that score a hand in a single array read. They're a beautiful optimisation, and entirely unnecessary here.)
 
-### Showdown
+### Wiring it into the table
 
-Everything is now in place for the comparison the secrecy problem was always standing in front of:
+Back on the `PokerTable` contract, the betting round used to simply stop once everyone had matched. Now it has somewhere to go. When `_advanceAfterAction` sees the round is complete, it sets a `bettingClosed` flag alongside the `BettingRoundComplete` event. That flag is the gate for a new `showdown` function:
 
 ```solidity
-uint256 aliceScore = HandRank.best7(aliceSeven);
-uint256 bobScore   = HandRank.best7(bobSeven);
-if (aliceScore > bobScore) {
-    // Alice takes the pot.
-} else if (bobScore > aliceScore) {
-    // Bob takes the pot.
-} else {
-    // Identical scores are a genuine split pot.
+function showdown(uint8[5] calldata board, uint8[2][MAX_PLAYERS] calldata holeCards)
+    external
+{
+    require(handInProgress, "no hand in progress");
+    require(bettingClosed, "betting still open");
+
+    uint8 bestSeat = MAX_PLAYERS; // sentinel: no winner yet
+    uint256 bestScore;
+
+    for (uint8 i = 0; i < MAX_PLAYERS; i++) {
+        if (seats[i].seated && !seats[i].folded) {
+            uint8[7] memory seven = [
+                holeCards[i][0], holeCards[i][1],
+                board[0], board[1], board[2], board[3], board[4]
+            ];
+            uint256 s = HandRank.best7(seven);
+            emit ShowdownScored(i, s);
+
+            if (bestSeat == MAX_PLAYERS || s > bestScore) {
+                bestSeat = i;
+                bestScore = s;
+            }
+        }
+    }
+
+    uint256 amount = pot;
+    pot = 0;
+    seats[bestSeat].stack += amount;
+    handInProgress = false;
+    bettingClosed = false;
+
+    emit HandSettled(bestSeat, amount);
 }
 ```
 
-A tie in the score is a real tie in poker, the split-pot case, because two hands that pack to the same integer are equal all the way down to the last kicker. The whole showdown is three lines.
+It walks every live seat, builds that player's seven cards from their two hole cards plus the shared board, scores each with `best7`, and keeps the highest. The pot moves to the winner's stack and the hand ends. It reuses the same `HandSettled` event the fold-to-last-player path emits, so a client watching the table doesn't need to care whether the hand ended by everyone folding or by a showdown.
 
-So we have, in plain Solidity, every piece of a hand of Hold'em except the one the EVM fundamentally cannot give us. The chips, the turn order, the blinds, the betting, the shuffle, and now the evaluation of who wins are all here and all on-chain-friendly. The cards staying secret between the deal and the showdown is the single thing that has to live somewhere else. That gap, and not the poker, has been the real subject of this whole section.
+Two honest shortcuts are labelled right in the code. The strict `>` means an exact tie leaves the whole pot with the earlier seat rather than splitting it, the same single-pot simplification we made back at the blinds. And more fundamentally, the function simply **trusts the cards it is handed**. That is the secrecy wall showing up one last time. A public chain cannot keep the hole cards hidden between the deal and the reveal, so a real game would have each player prove their revealed cards against a commitment made before the betting, the way the "hiding the deck" page describes. What lives on-chain comfortably is everything *after* the reveal: ranking the hands and moving the money.
+
+### What we built
+
+So we now have, in plain Solidity, every piece of a hand of Hold'em except the one the EVM fundamentally cannot give us. The chips, the turn order, the blinds, the betting, the shuffle, the evaluation of who wins, and the settlement of the pot are all here and all on-chain-friendly. The cards staying secret between the deal and the showdown is the single thing that has to live somewhere else. That gap, and not the poker, has been the real subject of this whole section.

@@ -167,7 +167,9 @@ Our logic handles this without any special case. The big blind starts the round 
 
 Run a full round — under-the-gun calls, others call, the big blind checks — and you'll see `BettingRoundComplete` fire with the pot collected and everyone level. And then... our toy stops.
 
-A real hand would now deal the **flop**, open a second betting round, then the **turn**, the **river**, and finally a **showdown** comparing hands. We're not going there, for the reason that's haunted this whole section: dealing the flop means dealing *cards*, and we've already seen that a public chain can't keep them secret without the commit–reveal, threshold, or zero-knowledge machinery from the last two pages. The betting logic is genuinely on-chain-friendly — it's pure bookkeeping on integers, exactly what the EVM is good at. The *cards* are the wall.
+A real hand would now deal the **flop**, open a second betting round, then the **turn**, the **river**, and finally a **showdown** comparing hands. We won't deal those streets, for the reason that's haunted this whole section: dealing the flop means dealing *cards*, and we've already seen that a public chain can't keep them secret without the commit–reveal, threshold, or zero-knowledge machinery from the last two pages. The betting logic is genuinely on-chain-friendly — it's pure bookkeeping on integers, exactly what the EVM is good at. The *cards* are the wall.
+
+We can, however, write the part that comes *after* the cards are revealed: deciding who won and paying them. That is the next page, where a hand-ranking library scores the showdown and settles the pot.
 
 ### What we built
 
