@@ -12,7 +12,7 @@ pragma solidity ^0.8.24;
 ///      and keep the best.
 library HandRank {
     // Hand categories, ordered weakest to strongest. The category occupies the
-    // top of the score so it dominates any tiebreak below it.
+    // top of the score so it dominates any tie-break below it.
     uint256 internal constant HIGH_CARD = 0;
     uint256 internal constant PAIR = 1;
     uint256 internal constant TWO_PAIR = 2;

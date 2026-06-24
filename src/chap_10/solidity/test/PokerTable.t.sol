@@ -145,4 +145,66 @@ contract PokerTableTest is Test {
         (, uint256 aliceStack,,,,) = table.seats(0);
         assertEq(aliceStack, MIN - BB + potBefore);
     }
+
+    // Card index helper for the showdown: rank 0..12 (2..A), suit 0..3.
+    function _card(uint8 rank, uint8 suit) internal pure returns (uint8) {
+        return suit * 13 + rank;
+    }
+
+    function test_showdown_awardsPotToBestHand() public {
+        _seat(alice, 0);
+        _seat(bob, 1);
+        _seat(carol, 2);
+        table.startHand();
+        // button=1, SB=2 (carol), BB=0 (alice), UTG=1 (bob) acts first.
+
+        // Everyone calls/checks around to close the only betting round.
+        vm.prank(bob);
+        table.call();
+        vm.prank(carol);
+        table.call();
+        vm.prank(alice);
+        table.check();
+
+        assertTrue(table.bettingClosed());
+        uint256 potBefore = table.pot();
+
+        // Reveal the board and each seat's hole cards.
+        // Board: As Ks Qs 7c 2d (rank, suit).
+        uint8[5] memory board = [
+            _card(12, 3), // Ace of spades
+            _card(11, 3), // King of spades
+            _card(10, 3), // Queen of spades
+            _card(5, 0), //  Seven of clubs
+            _card(0, 1) //   Two of diamonds
+        ];
+
+        uint8[2][9] memory hole;
+        // Bob (seat 1): Js Ts -> royal flush with the spade board. Winner.
+        hole[1] = [_card(9, 3), _card(8, 3)];
+        // Alice (seat 0): Ac Ah -> trip aces.
+        hole[0] = [_card(12, 0), _card(12, 2)];
+        // Carol (seat 2): 2c 2h -> two pair (twos and... just a pair of twos + board).
+        hole[2] = [_card(0, 0), _card(0, 2)];
+
+        table.showdown(board, hole);
+
+        // Bob's royal flush takes the pot.
+        assertFalse(table.handInProgress());
+        (, uint256 bobStack,,,,) = table.seats(1);
+        // Bob paid BB (2) to call, so net = MIN - BB + pot.
+        assertEq(bobStack, MIN - BB + potBefore);
+    }
+
+    function test_showdown_revertsBeforeBettingCloses() public {
+        _seat(alice, 0);
+        _seat(bob, 1);
+        _seat(carol, 2);
+        table.startHand();
+
+        uint8[5] memory board;
+        uint8[2][9] memory hole;
+        vm.expectRevert("betting still open");
+        table.showdown(board, hole);
+    }
 }

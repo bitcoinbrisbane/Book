@@ -2,6 +2,7 @@
 pragma solidity ^0.8.24;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { HandRank } from "./HandRank.sol";
 
 /// @title PokerTable
 /// @notice A "for fun" on-chain Texas Hold'em table. NOT for production use:
@@ -35,6 +36,7 @@ contract PokerTable {
     uint256 public lastRaiseSize; // size of the last raise, for min-raise rule
     uint8 public actingSeat; // whose turn it is to act
     bool public handInProgress;
+    bool public bettingClosed; // the final betting round has finished; awaiting showdown
     uint8 public activeInHand; // players who have not folded this hand
 
     event PlayerJoined(address indexed player, uint8 seat, uint256 buyIn);
@@ -45,6 +47,7 @@ contract PokerTable {
     event PlayerCalled(uint8 seat, uint256 amount);
     event PlayerRaised(uint8 seat, uint256 toAmount);
     event BettingRoundComplete(uint256 pot);
+    event ShowdownScored(uint8 seat, uint256 score);
     event HandSettled(uint8 winnerSeat, uint256 amount);
 
     constructor(
@@ -143,6 +146,7 @@ contract PokerTable {
         lastRaiseSize = bigBlind; // the next raise must be at least one big blind
         actingSeat = _nextOccupiedSeat(bbSeat); // under the gun
         handInProgress = true;
+        bettingClosed = false;
 
         emit HandStarted(buttonSeat, sbSeat, bbSeat);
     }
@@ -248,10 +252,12 @@ contract PokerTable {
     /// @dev After any action, either close the round or pass to the next player.
     function _advanceAfterAction(uint8 seat) private {
         if (_roundComplete()) {
+            // A real game would deal the next street (flop/turn/river) and open a
+            // fresh betting round between each. Our toy collapses all of that into
+            // a single round, then jumps straight to the showdown. Mark the betting
+            // closed so the cards can be revealed and scored.
+            bettingClosed = true;
             emit BettingRoundComplete(pot);
-            // A real game would now deal the next street (flop/turn/river) and
-            // open a fresh betting round. Our toy stops here: the hand is frozen
-            // at end-of-round, awaiting showdown logic we haven't written.
         } else {
             actingSeat = _nextActiveSeat(seat);
         }
@@ -268,6 +274,65 @@ contract PokerTable {
             }
         }
         return true;
+    }
+
+    // ---------------------------------------------------------------------
+    // Showdown: reveal the cards and award the pot to the best hand
+    // (chapter page: "Ranking hands")
+    // ---------------------------------------------------------------------
+
+    /// @notice Settle the hand by comparing the revealed cards of every player
+    ///         still live, awarding the pot to the best 5-card hand.
+    /// @param board The five community cards, as indices 0..51.
+    /// @param holeCards Two hole cards per seat, indexed by seat. Only the seats
+    ///        still in the hand are read; folded and empty seats are ignored.
+    /// @dev TEACHING CODE. A public chain cannot keep the hole cards secret on
+    ///      its own, so this function simply trusts whatever cards it is handed.
+    ///      A real game would prove these cards against an earlier commitment
+    ///      (see the "hiding the deck" page). The point here is only the
+    ///      *ranking and settlement*, which is the part the EVM does well.
+    function showdown(uint8[5] calldata board, uint8[2][MAX_PLAYERS] calldata holeCards)
+        external
+    {
+        require(handInProgress, "no hand in progress");
+        require(bettingClosed, "betting still open");
+
+        uint8 bestSeat = MAX_PLAYERS; // sentinel: no winner found yet
+        uint256 bestScore;
+
+        for (uint8 i = 0; i < MAX_PLAYERS; i++) {
+            if (seats[i].seated && !seats[i].folded) {
+                uint8[7] memory seven = [
+                    holeCards[i][0],
+                    holeCards[i][1],
+                    board[0],
+                    board[1],
+                    board[2],
+                    board[3],
+                    board[4]
+                ];
+                uint256 s = HandRank.best7(seven);
+                emit ShowdownScored(i, s);
+
+                // Strict > means ties leave the pot with the earlier seat. A
+                // production game would split the pot; our toy keeps it simple
+                // and flags the shortcut here.
+                if (bestSeat == MAX_PLAYERS || s > bestScore) {
+                    bestSeat = i;
+                    bestScore = s;
+                }
+            }
+        }
+
+        require(bestSeat < MAX_PLAYERS, "no active seat");
+
+        uint256 amount = pot;
+        pot = 0;
+        seats[bestSeat].stack += amount;
+        handInProgress = false;
+        bettingClosed = false;
+
+        emit HandSettled(bestSeat, amount);
     }
 
     function _settleToLastPlayer() private {
